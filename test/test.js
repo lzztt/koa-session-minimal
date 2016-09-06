@@ -45,8 +45,8 @@ const validateCookie = (res, key) => {
   expect(cookie[0].slice(0, key.length + 35)).to.be.equal(`${key}=${res.body.id}; `)
 }
 const validateBody = (res, startTime) => {
-  expect(res.body.time).to.be.above(startTime)
-  expect(res.body.time).to.be.below(Date.now())
+  expect(res.body.time).to.be.at.least(startTime)
+  expect(res.body.time).to.be.at.most(Date.now())
 }
 
 
@@ -112,7 +112,7 @@ describe('koa-session-minimal', () => {
           validateCookie(res2, key)
           validateBody(res2, startTime)
           expect(res2.body.id).to.be.not.equal(session.id)
-          expect(res2.body.time).to.be.above(session.time)
+          expect(res2.body.time).to.be.at.least(session.time)
 
           client.get('/').set('cookie', `${key}=${session.id}`).end((err3, res3) => {
             if (err3) done(err3)
