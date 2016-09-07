@@ -12,6 +12,17 @@ const sessionBody = ctx => {
   ctx.body = ctx.session
 }
 
+const router = new Router()
+router.get('/', sessionBody)
+router.get('/clear', (ctx, next) => {
+  ctx.sessionHandler.clear()
+  next()
+}, sessionBody)
+router.get('/regenerate', (ctx, next) => {
+  ctx.sessionHandler.regenerate()
+  next()
+}, sessionBody)
+
 const validateCookie = (res, key) => {
   const cookie = res.header['set-cookie']
   expect(cookie.length).to.be.equal(1)
@@ -28,7 +39,8 @@ describe('session with default memory store', () => {
   const key = 'koa:sess'
 
   app.use(session())
-  app.use(sessionBody)
+  app.use(router.routes())
+  app.use(router.allowedMethods())
 
   const client = request(app.listen())
 
@@ -97,10 +109,14 @@ describe('session with default memory store', () => {
   })
 
   it('clear handler should clear session data', done => {
-    done()
+    client.get('/clear').end((err, res) => {
+      done()
+    })
   })
 
   it('regenerate handler should regenerate session id and clear data', done => {
-    done()
+    client.get('/regenerate').end((err, res) => {
+      done()
+    })
   })
 })
