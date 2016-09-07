@@ -60,7 +60,7 @@ describe('session with default memory store', () => {
     const startTime = Date.now()
     Promise.all([
       new Promise((resolve, reject) => {
-        client.get('/').end((err, res) => {
+        client.get('/').expect(200).end((err, res) => {
           if (err) reject(err)
           validateCookie(res, key)
           validateBody(res, startTime)
@@ -68,7 +68,7 @@ describe('session with default memory store', () => {
         })
       }),
       new Promise((resolve, reject) => {
-        client.get('/').end((err, res) => {
+        client.get('/').expect(200).end((err, res) => {
           if (err) reject(err)
           validateCookie(res, key)
           validateBody(res, startTime)
@@ -85,20 +85,20 @@ describe('session with default memory store', () => {
 
   it('session data is available among multiple requests', done => {
     const startTime = Date.now()
-    client.get('/').end((err1, res1) => {
+    client.get('/').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
       validateBody(res1, startTime)
       const session = res1.body
 
-      client.get('/').end((err2, res2) => {
+      client.get('/').expect(200).end((err2, res2) => {
         if (err2) done(err2)
         validateCookie(res2, key)
         validateBody(res2, startTime)
         expect(res2.body.id).to.be.not.equal(session.id)
         expect(res2.body.time).to.be.at.least(session.time)
 
-        client.get('/').set('cookie', `${key}=${session.id}`).end((err3, res3) => {
+        client.get('/').set('cookie', `${key}=${session.id}`).expect(200).end((err3, res3) => {
           if (err3) done(err3)
           expect(res3.header['set-cookie']).to.be.equal(undefined)
           expect(res3.body).to.be.deep.equal(session)
@@ -109,13 +109,13 @@ describe('session with default memory store', () => {
   })
 
   it('clear handler should clear session data', done => {
-    client.get('/clear').end((err, res) => {
+    client.get('/clear').expect(200).end((err, res) => {
       done()
     })
   })
 
   it('regenerate handler should regenerate session id and clear data', done => {
-    client.get('/regenerate').end((err, res) => {
+    client.get('/regenerate').expect(200).end((err, res) => {
       done()
     })
   })
