@@ -2,7 +2,7 @@
   "name": "koa-session-minimal",
   "version": "0.0.1",
   "description": "simple session for Koa 2",
-  "main": "index.js",
+  "main": "lib/session.js",
   "scripts": {
     "test": "mocha"
   },
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/longztian/koa-session-minimal#readme",
   "dependencies": {
+    "co": "^4.6.0",
     "uid-safe": "^2.1.2"
   },
   "devDependencies": {
@@ -32,6 +33,7 @@
     "eslint-config-airbnb-base": "^5.0.3",
     "eslint-plugin-import": "^1.14.0",
     "koa": "^2.0.0-alpha.6",
+    "koa-router": "^5.4.0",
     "mocha": "^3.0.2",
     "supertest": "^2.0.0"
   }
