@@ -18,7 +18,7 @@ class AsyncSpyStore {
     return this.sessions[sid]
   }
 
-  async set(sid, val = {}) {
+  async set(sid, val, ttl) {
     this.calls.set.push([...arguments])
     this.sessions[sid] = val
   }
