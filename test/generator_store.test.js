@@ -18,7 +18,7 @@ class GeneratorSpyStore {
     return this.sessions[sid]
   }
 
-  * set(sid, val) {
+  * set(sid, val, ttl) {
     this.calls.set.push([...arguments])
     this.sessions[sid] = val
   }
