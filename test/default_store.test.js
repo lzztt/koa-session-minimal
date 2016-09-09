@@ -5,21 +5,27 @@ const Router = require('koa-router')
 const session = require('../lib/session')
 
 const sessionBody = ctx => {
-  if (Object.keys(ctx.session).length === 0) {
-    ctx.session.id = ctx.sessionHandler.getId()
-    ctx.session.time = Date.now()
-  }
   ctx.body = ctx.session
 }
 
 const router = new Router()
 router.get('/', sessionBody)
+router.get('/set', (ctx, next) => {
+  ctx.session = {
+    id: ctx.sessionHandler.getId(),
+    time: Date.now(),
+  }
+  next()
+}, sessionBody)
 router.get('/clear', (ctx, next) => {
-  ctx.sessionHandler.clear()
+  ctx.session = {}
   next()
 }, sessionBody)
 router.get('/regenerate', (ctx, next) => {
-  ctx.sessionHandler.regenerate()
+  ctx.sessionHandler.regenerateId()
+  if (ctx.session.id) {
+    ctx.session.id = ctx.sessionHandler.getId()
+  }
   next()
 }, sessionBody)
 
@@ -46,7 +52,7 @@ describe('session with default memory store', () => {
 
   it('should work and set session cookie', (done) => {
     const startTime = Date.now()
-    client.get('/')
+    client.get('/set')
       .expect(200)
       .end((err, res) => {
         if (err) done(err)
@@ -60,7 +66,7 @@ describe('session with default memory store', () => {
     const startTime = Date.now()
     Promise.all([
       new Promise((resolve, reject) => {
-        client.get('/').expect(200).end((err, res) => {
+        client.get('/set').expect(200).end((err, res) => {
           if (err) reject(err)
           validateCookie(res, key)
           validateBody(res, startTime)
@@ -68,7 +74,7 @@ describe('session with default memory store', () => {
         })
       }),
       new Promise((resolve, reject) => {
-        client.get('/').expect(200).end((err, res) => {
+        client.get('/set').expect(200).end((err, res) => {
           if (err) reject(err)
           validateCookie(res, key)
           validateBody(res, startTime)
@@ -85,13 +91,13 @@ describe('session with default memory store', () => {
 
   it('session data is available among multiple requests', done => {
     const startTime = Date.now()
-    client.get('/').expect(200).end((err1, res1) => {
+    client.get('/set').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
       validateBody(res1, startTime)
       const session = res1.body
 
-      client.get('/').expect(200).end((err2, res2) => {
+      client.get('/set').expect(200).end((err2, res2) => {
         if (err2) done(err2)
         validateCookie(res2, key)
         validateBody(res2, startTime)
@@ -108,15 +114,60 @@ describe('session with default memory store', () => {
     })
   })
 
-  it('clear handler should clear session data', done => {
-    client.get('/clear').expect(200).end((err, res) => {
-      done()
+  it('set ctx.session = null should clear session data', done => {
+    const startTime = Date.now()
+    client.get('/set').expect(200).end((err1, res1) => {
+      if (err1) done(err1)
+      validateCookie(res1, key)
+      validateBody(res1, startTime)
+      const session = res1.body
+
+      client.get('/clear').set('cookie', `${key}=${session.id}`).expect(200).end((err2, res2) => {
+        if (err2) done(err2)
+        expect(res2.header['set-cookie']).to.be.equal(undefined)
+        expect(res2.body).to.be.deep.equal({})
+
+        client.get('/').set('cookie', `${key}=${session.id}`).expect(200).end((err3, res3) => {
+          if (err3) done(err3)
+          expect(res3.header['set-cookie']).to.be.equal(undefined)
+          expect(res3.body).to.be.deep.equal({})
+          client.get('/set').set('cookie', `${key}=${session.id}`).expect(200).end((err4, res4) => {
+            if (err4) done(err4)
+            expect(res4.header['set-cookie']).to.be.equal(undefined)
+            validateBody(res4, startTime)
+            expect(res4.body.id).to.be.equal(session.id)
+            done()
+          })
+        })
+      })
     })
   })
 
-  it('regenerate handler should regenerate session id and clear data', done => {
-    client.get('/regenerate').expect(200).end((err, res) => {
-      done()
+  it('regenerateId() should regenerate session id', done => {
+    const startTime = Date.now()
+    client.get('/set').expect(200).end((err1, res1) => {
+      if (err1) done(err1)
+      validateCookie(res1, key)
+      validateBody(res1, startTime)
+      const session = res1.body
+
+      client.get('/regenerate').set('cookie', `${key}=${session.id}`).expect(200).end((err2, res2) => {
+        if (err2) done(err2)
+        validateCookie(res2, key)
+        validateBody(res2, startTime)
+        expect(res2.body.id).to.be.not.equal(session.id)
+        expect(res2.body.time).to.be.equal(session.time)
+        const session2 = res2.body
+
+        client.get('/').set('cookie', `${key}=${session2.id}`).expect(200).end((err3, res3) => {
+          if (err3) done(err3)
+          expect(res3.header['set-cookie']).to.be.equal(undefined)
+          validateBody(res3, startTime)
+          expect(res3.body.id).to.be.equal(session2.id)
+          expect(res3.body.time).to.be.equal(session2.time)
+          done()
+        })
+      })
     })
   })
 })
