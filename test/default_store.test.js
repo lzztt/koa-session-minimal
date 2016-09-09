@@ -138,6 +138,7 @@ describe('session with default memory store', () => {
             sid: body1.sid,
             data: {},
           })
+
           client.get('/set/time').set('cookie', `${key}=${body1.sid}`).expect(200).end((err4, res4) => {
             if (err4) done(err4)
             expect(res4.header['set-cookie']).to.be.equal(undefined)
@@ -172,6 +173,7 @@ describe('session with default memory store', () => {
             sid: body1.sid,
             data: {},
           })
+
           client.get('/set/time').set('cookie', `${key}=${body1.sid}`).expect(200).end((err4, res4) => {
             if (err4) done(err4)
             expect(res4.header['set-cookie']).to.be.equal(undefined)
@@ -184,7 +186,7 @@ describe('session with default memory store', () => {
     })
   })
 
-  it('regenerate_idId() should regenerate_id session id', done => {
+  it('regenerateId() should regenerate session id', done => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
