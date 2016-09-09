@@ -65,6 +65,7 @@ describe('session with async store', () => {
 
   beforeEach(() => {
     store.clear()
+    ttl = 24 * 3600 * 1000 // one day in milliseconds
     startTime = Date.now()
   });
 
@@ -73,6 +74,13 @@ describe('session with async store', () => {
       if (err) done(err)
       validateCookie(res, key)
       validateBody(res, startTime)
+      validateStoreCalls(store, {
+        get: [],
+        set: [
+          [`${key}:${res.body.sid}`, res.body.data, ttl],
+        ],
+        destroy: [],
+      })
       done()
     })
   })
@@ -97,6 +105,9 @@ describe('session with async store', () => {
       })
     ]).then(sids => {
       expect(sids[0]).to.be.not.equal(sids[1])
+      expect(store.calls.get.length).to.be.equal(0)
+      expect(store.calls.set.length).to.be.equal(2)
+      expect(store.calls.destroy.length).to.be.equal(0)
       done()
     }).catch((err) => {
       done(err)
@@ -108,6 +119,13 @@ describe('session with async store', () => {
       if (err1) done(err1)
       validateCookie(res1, key)
       validateBody(res1, startTime)
+      validateStoreCalls(store, {
+        get: [],
+        set: [
+          [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+        ],
+        destroy: [],
+      })
 
       const body1 = res1.body
       client.get('/set/time').expect(200).end((err2, res2) => {
@@ -116,11 +134,29 @@ describe('session with async store', () => {
         validateBody(res2, startTime)
         expect(res2.body.sid).to.be.not.equal(body1.id)
         expect(res2.body.data.time).to.be.at.least(body1.data.time)
+        validateStoreCalls(store, {
+          get: [],
+          set: [
+            [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+            [`${key}:${res2.body.sid}`, res2.body.data, ttl],
+          ],
+          destroy: [],
+        })
 
         client.get('/').set('cookie', `${key}=${body1.sid}`).expect(200).end((err3, res3) => {
           if (err3) done(err3)
           expect(res3.header['set-cookie']).to.be.equal(undefined)
           expect(res3.body).to.be.deep.equal(body1)
+          validateStoreCalls(store, {
+            get: [
+              [`${key}:${res1.body.sid}`],
+            ],
+            set: [
+              [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+              [`${key}:${res2.body.sid}`, res2.body.data, ttl],
+            ],
+            destroy: [],
+          })
           done()
         })
       })
@@ -132,6 +168,13 @@ describe('session with async store', () => {
       if (err1) done(err1)
       validateCookie(res1, key)
       validateBody(res1, startTime)
+      validateStoreCalls(store, {
+        get: [],
+        set: [
+          [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+        ],
+        destroy: [],
+      })
 
       const body1 = res1.body
       client.get('/set/empty').set('cookie', `${key}=${body1.sid}`).expect(200).end((err2, res2) => {
@@ -141,6 +184,17 @@ describe('session with async store', () => {
           sid: body1.sid,
           data: {},
         })
+        validateStoreCalls(store, {
+          get: [
+            [`${key}:${res1.body.sid}`],
+          ],
+          set: [
+            [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+          ],
+          destroy: [
+            [`${key}:${res1.body.sid}`],
+          ],
+        })
 
         client.get('/').set('cookie', `${key}=${body1.sid}`).expect(200).end((err3, res3) => {
           if (err3) done(err3)
@@ -149,11 +203,38 @@ describe('session with async store', () => {
             sid: body1.sid,
             data: {},
           })
+          validateStoreCalls(store, {
+            get: [
+              [`${key}:${res1.body.sid}`],
+              [`${key}:${res1.body.sid}`],
+            ],
+            set: [
+              [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+            ],
+            destroy: [
+              [`${key}:${res1.body.sid}`],
+            ],
+          })
+
           client.get('/set/time').set('cookie', `${key}=${body1.sid}`).expect(200).end((err4, res4) => {
             if (err4) done(err4)
             expect(res4.header['set-cookie']).to.be.equal(undefined)
             validateBody(res4, startTime)
             expect(res4.body.sid).to.be.equal(body1.sid)
+            validateStoreCalls(store, {
+              get: [
+                [`${key}:${res1.body.sid}`],
+                [`${key}:${res1.body.sid}`],
+                [`${key}:${res1.body.sid}`],
+              ],
+              set: [
+                [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+                [`${key}:${res1.body.sid}`, res4.body.data, ttl],
+              ],
+              destroy: [
+                [`${key}:${res1.body.sid}`],
+              ],
+            })
             done()
           })
         })
@@ -166,6 +247,13 @@ describe('session with async store', () => {
       if (err1) done(err1)
       validateCookie(res1, key)
       validateBody(res1, startTime)
+      validateStoreCalls(store, {
+        get: [],
+        set: [
+          [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+        ],
+        destroy: [],
+      })
 
       const body1 = res1.body
       client.get('/set/null').set('cookie', `${key}=${body1.sid}`).expect(200).end((err2, res2) => {
@@ -175,6 +263,17 @@ describe('session with async store', () => {
           sid: body1.sid,
           data: null,
         })
+        validateStoreCalls(store, {
+          get: [
+            [`${key}:${res1.body.sid}`],
+          ],
+          set: [
+            [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+          ],
+          destroy: [
+            [`${key}:${res1.body.sid}`],
+          ],
+        })
 
         client.get('/').set('cookie', `${key}=${body1.sid}`).expect(200).end((err3, res3) => {
           if (err3) done(err3)
@@ -183,11 +282,38 @@ describe('session with async store', () => {
             sid: body1.sid,
             data: {},
           })
+          validateStoreCalls(store, {
+            get: [
+              [`${key}:${res1.body.sid}`],
+              [`${key}:${res1.body.sid}`],
+            ],
+            set: [
+              [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+            ],
+            destroy: [
+              [`${key}:${res1.body.sid}`],
+            ],
+          })
+
           client.get('/set/time').set('cookie', `${key}=${body1.sid}`).expect(200).end((err4, res4) => {
             if (err4) done(err4)
             expect(res4.header['set-cookie']).to.be.equal(undefined)
             validateBody(res4, startTime)
             expect(res4.body.sid).to.be.equal(body1.sid)
+            validateStoreCalls(store, {
+              get: [
+                [`${key}:${res1.body.sid}`],
+                [`${key}:${res1.body.sid}`],
+                [`${key}:${res1.body.sid}`],
+              ],
+              set: [
+                [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+                [`${key}:${res1.body.sid}`, res4.body.data, ttl],
+              ],
+              destroy: [
+                [`${key}:${res1.body.sid}`],
+              ],
+            })
             done()
           })
         })
@@ -195,11 +321,18 @@ describe('session with async store', () => {
     })
   })
 
-  it('regenerate_idId() should regenerate_id session id', done => {
+  it('regenerateId() should regenerate session id', done => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
       validateBody(res1, startTime)
+      validateStoreCalls(store, {
+        get: [],
+        set: [
+          [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+        ],
+        destroy: [],
+      })
 
       const body1 = res1.body
       client.get('/regenerate_id').set('cookie', `${key}=${body1.sid}`).expect(200).end((err2, res2) => {
@@ -208,6 +341,18 @@ describe('session with async store', () => {
         validateBody(res2, startTime)
         expect(res2.body.sid).to.be.not.equal(body1.sid)
         expect(res2.body.data.time).to.be.equal(body1.data.time)
+        validateStoreCalls(store, {
+          get: [
+            [`${key}:${res1.body.sid}`],
+          ],
+          set: [
+            [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+            [`${key}:${res2.body.sid}`, res2.body.data, ttl],
+          ],
+          destroy: [
+            [`${key}:${res1.body.sid}`],
+          ],
+        })
 
         const body2 = res2.body
         client.get('/').set('cookie', `${key}=${body2.sid}`).expect(200).end((err3, res3) => {
@@ -216,33 +361,19 @@ describe('session with async store', () => {
           validateBody(res3, startTime)
           expect(res3.body.sid).to.be.equal(body2.sid)
           expect(res3.body.data.time).to.be.equal(body2.data.time)
-          done()
-        })
-      })
-    })
-  })
-
-
-  it('store method call times', done => {
-    client.get('/set/time').end((err1, res1) => {
-      if (err1) done(err1)
-      const session = res1.body
-      expect(store.calls.get.length).to.be.equal(0)
-      expect(store.calls.set.length).to.be.equal(1)
-      expect(store.calls.destroy.length).to.be.equal(0)
-
-
-      client.get('/set/time').end((err2, res2) => {
-        if (err2) done(err2)
-        expect(store.calls.get.length).to.be.equal(0)
-        expect(store.calls.set.length).to.be.equal(2)
-        expect(store.calls.destroy.length).to.be.equal(0)
-
-        client.get('/').set('cookie', `${key}=${session.id}`).end((err3, res3) => {
-          if (err3) done(err3)
-          expect(store.calls.get.length).to.be.equal(1)
-          expect(store.calls.set.length).to.be.equal(2)
-          expect(store.calls.destroy.length).to.be.equal(0)
+          validateStoreCalls(store, {
+            get: [
+              [`${key}:${res1.body.sid}`],
+              [`${key}:${res2.body.sid}`],
+            ],
+            set: [
+              [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+              [`${key}:${res2.body.sid}`, res2.body.data, ttl],
+            ],
+            destroy: [
+              [`${key}:${res1.body.sid}`],
+            ],
+          })
           done()
         })
       })
