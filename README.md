@@ -3,7 +3,7 @@
 [![NPM version][npm-image]][npm-url]
 [![Build Status][travis-image]][travis-url]
 
-Minimal implementation of session middleware for Koa 2. Inspired by and compatible with [koa-generic-session](https://github.com/koajs/generic-session). It is a re-write of generic-session with its essential functionality in es6.
+Minimal implementation of session middleware for Koa 2. Inspired by and compatible with [koa-generic-session](https://github.com/koajs/generic-session). It is a re-write of generic-session with its essential functionality, with around 100 lines of code in es6.
 
 This middleware works with Koa 2. It supports existing session stores for [koa-generic-session](https://github.com/koajs/generic-session) (via the `co` wrapper). It has the same runtime requirement as Koa 2:
 - node version >= 4
