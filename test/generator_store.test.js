@@ -1,3 +1,6 @@
+'use strict'
+
+require('babel-register')
 const Koa = require('koa')
 const request = require('supertest')
 const expect = require('chai').expect
