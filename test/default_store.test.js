@@ -19,6 +19,7 @@ const updateSession = (ctx, next) => {
     case '/regenerate_id':
       ctx.sessionHandler.regenerateId()
       break
+    default:
   }
   next()
 }
@@ -26,14 +27,15 @@ const updateSession = (ctx, next) => {
 const sessionToBody = ctx => {
   ctx.body = {
     sid: ctx.sessionHandler.getId(),
-    data: ctx.session
+    data: ctx.session,
   }
 }
 
 const validateCookie = (res, key) => {
   const cookie = res.header['set-cookie']
   expect(cookie.length).to.be.equal(1)
-  expect(cookie[0].slice(0, key.length + 35)).to.be.equal(`${key}=${res.body.sid}; `)
+  expect(cookie[0].slice(0, key.length + res.body.sid.length + 3))
+    .to.be.equal(`${key}=${res.body.sid}; `)
 }
 
 const validateBody = (res, startTime) => {
@@ -55,9 +57,18 @@ describe('session with default memory store', () => {
 
   beforeEach(() => {
     startTime = Date.now()
-  });
+  })
 
-  it('should work and set session cookie', (done) => {
+  it('should work and not set cookie for empty session', done => {
+    client.get('/').expect(200).end((err, res) => {
+      if (err) done(err)
+      validateBody(res, startTime)
+      expect(res.header['set-cookie']).to.be.equal(undefined)
+    })
+    done()
+  })
+
+  it('set session cookie when session has data', done => {
     client.get('/set/time').expect(200).end((err, res) => {
       if (err) done(err)
       validateCookie(res, key)
@@ -83,7 +94,7 @@ describe('session with default memory store', () => {
           validateBody(res, startTime)
           resolve(res.body.sid)
         })
-      })
+      }),
     ]).then(sids => {
       expect(sids[0]).to.be.not.equal(sids[1])
       done()
@@ -106,12 +117,13 @@ describe('session with default memory store', () => {
         expect(res2.body.sid).to.be.not.equal(body1.id)
         expect(res2.body.data.time).to.be.at.least(body1.data.time)
 
-        client.get('/').set('cookie', `${key}=${body1.sid}`).expect(200).end((err3, res3) => {
-          if (err3) done(err3)
-          expect(res3.header['set-cookie']).to.be.equal(undefined)
-          expect(res3.body).to.be.deep.equal(body1)
-          done()
-        })
+        client.get('/').set('cookie', `${key}=${body1.sid}`)
+          .expect(200).end((err3, res3) => {
+            if (err3) done(err3)
+            expect(res3.header['set-cookie']).to.be.equal(undefined)
+            expect(res3.body).to.be.deep.equal(body1)
+            done()
+          })
       })
     })
   })
@@ -123,31 +135,27 @@ describe('session with default memory store', () => {
       validateBody(res1, startTime)
 
       const body1 = res1.body
-      client.get('/set/empty').set('cookie', `${key}=${body1.sid}`).expect(200).end((err2, res2) => {
-        if (err2) done(err2)
-        expect(res2.header['set-cookie']).to.be.equal(undefined)
-        expect(res2.body).to.be.deep.equal({
-          sid: body1.sid,
-          data: {},
-        })
-
-        client.get('/').set('cookie', `${key}=${body1.sid}`).expect(200).end((err3, res3) => {
-          if (err3) done(err3)
-          expect(res3.header['set-cookie']).to.be.equal(undefined)
-          expect(res3.body).to.be.deep.equal({
+      client.get('/set/empty').set('cookie', `${key}=${body1.sid}`)
+        .expect(200).end((err2, res2) => {
+          if (err2) done(err2)
+          expect(res2.body).to.be.deep.equal({
             sid: body1.sid,
             data: {},
           })
+          res2.body.sid = ''
+          validateCookie(res2, key)
 
-          client.get('/set/time').set('cookie', `${key}=${body1.sid}`).expect(200).end((err4, res4) => {
-            if (err4) done(err4)
-            expect(res4.header['set-cookie']).to.be.equal(undefined)
-            validateBody(res4, startTime)
-            expect(res4.body.sid).to.be.equal(body1.sid)
-            done()
-          })
+          client.get('/').set('cookie', `${key}=${body1.sid}`)
+            .expect(200).end((err3, res3) => {
+              if (err3) done(err3)
+              expect(res3.header['set-cookie']).to.be.equal(undefined)
+              expect(res3.body).to.be.deep.equal({
+                sid: body1.sid,
+                data: {},
+              })
+              done()
+            })
         })
-      })
     })
   })
 
@@ -158,31 +166,27 @@ describe('session with default memory store', () => {
       validateBody(res1, startTime)
 
       const body1 = res1.body
-      client.get('/set/null').set('cookie', `${key}=${body1.sid}`).expect(200).end((err2, res2) => {
-        if (err2) done(err2)
-        expect(res2.header['set-cookie']).to.be.equal(undefined)
-        expect(res2.body).to.be.deep.equal({
-          sid: body1.sid,
-          data: null,
-        })
-
-        client.get('/').set('cookie', `${key}=${body1.sid}`).expect(200).end((err3, res3) => {
-          if (err3) done(err3)
-          expect(res3.header['set-cookie']).to.be.equal(undefined)
-          expect(res3.body).to.be.deep.equal({
+      client.get('/set/null').set('cookie', `${key}=${body1.sid}`)
+        .expect(200).end((err2, res2) => {
+          if (err2) done(err2)
+          expect(res2.body).to.be.deep.equal({
             sid: body1.sid,
-            data: {},
+            data: null,
           })
+          res2.body.sid = ''
+          validateCookie(res2, key)
 
-          client.get('/set/time').set('cookie', `${key}=${body1.sid}`).expect(200).end((err4, res4) => {
-            if (err4) done(err4)
-            expect(res4.header['set-cookie']).to.be.equal(undefined)
-            validateBody(res4, startTime)
-            expect(res4.body.sid).to.be.equal(body1.sid)
-            done()
-          })
+          client.get('/').set('cookie', `${key}=${body1.sid}`)
+            .expect(200).end((err3, res3) => {
+              if (err3) done(err3)
+              expect(res3.header['set-cookie']).to.be.equal(undefined)
+              expect(res3.body).to.be.deep.equal({
+                sid: body1.sid,
+                data: {},
+              })
+              done()
+            })
         })
-      })
     })
   })
 
@@ -193,23 +197,25 @@ describe('session with default memory store', () => {
       validateBody(res1, startTime)
 
       const body1 = res1.body
-      client.get('/regenerate_id').set('cookie', `${key}=${body1.sid}`).expect(200).end((err2, res2) => {
-        if (err2) done(err2)
-        validateCookie(res2, key)
-        validateBody(res2, startTime)
-        expect(res2.body.sid).to.be.not.equal(body1.sid)
-        expect(res2.body.data.time).to.be.equal(body1.data.time)
+      client.get('/regenerate_id').set('cookie', `${key}=${body1.sid}`)
+        .expect(200).end((err2, res2) => {
+          if (err2) done(err2)
+          validateCookie(res2, key)
+          validateBody(res2, startTime)
+          expect(res2.body.sid).to.be.not.equal(body1.sid)
+          expect(res2.body.data.time).to.be.equal(body1.data.time)
 
-        const body2 = res2.body
-        client.get('/').set('cookie', `${key}=${body2.sid}`).expect(200).end((err3, res3) => {
-          if (err3) done(err3)
-          expect(res3.header['set-cookie']).to.be.equal(undefined)
-          validateBody(res3, startTime)
-          expect(res3.body.sid).to.be.equal(body2.sid)
-          expect(res3.body.data.time).to.be.equal(body2.data.time)
-          done()
+          const body2 = res2.body
+          client.get('/').set('cookie', `${key}=${body2.sid}`)
+            .expect(200).end((err3, res3) => {
+              if (err3) done(err3)
+              expect(res3.header['set-cookie']).to.be.equal(undefined)
+              validateBody(res3, startTime)
+              expect(res3.body.sid).to.be.equal(body2.sid)
+              expect(res3.body.data.time).to.be.equal(body2.data.time)
+              done()
+            })
         })
-      })
     })
   })
 })
