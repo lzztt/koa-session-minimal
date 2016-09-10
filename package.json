@@ -1,7 +1,7 @@
 {
   "name": "koa-session-minimal",
-  "version": "1.0.0",
-  "description": "simple session for Koa 2",
+  "version": "1.0.1",
+  "description": "Minimal implementation of session middleware for Koa 2. Inspired by and compatible with koa-generic-session",
   "main": "lib/session.js",
   "scripts": {
     "lint": "eslint lib test",
