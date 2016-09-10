@@ -2,7 +2,7 @@ const Koa = require('koa')
 const request = require('supertest')
 const expect = require('chai').expect
 const session = require('../lib/session')
-const AsyncSpyStore = require('./spy_store').AsyncSpyStore
+const SpyStore = require('./spy_store').AsyncSpyStore
 
 const updateSession = (ctx, next) => {
   switch (ctx.url) {
@@ -20,6 +20,7 @@ const updateSession = (ctx, next) => {
     case '/regenerate_id':
       ctx.sessionHandler.regenerateId()
       break
+    default:
   }
   next()
 }
@@ -27,14 +28,15 @@ const updateSession = (ctx, next) => {
 const sessionToBody = ctx => {
   ctx.body = {
     sid: ctx.sessionHandler.getId(),
-    data: ctx.session
+    data: ctx.session,
   }
 }
 
 const validateCookie = (res, key) => {
   const cookie = res.header['set-cookie']
   expect(cookie.length).to.be.equal(1)
-  expect(cookie[0].slice(0, key.length + 35)).to.be.equal(`${key}=${res.body.sid}; `)
+  expect(cookie[0].slice(0, key.length + res.body.sid.length + 3))
+    .to.be.equal(`${key}=${res.body.sid}; `)
 }
 
 const validateBody = (res, startTime) => {
@@ -46,28 +48,44 @@ const validateStoreCalls = (store, calls) => {
   ['get', 'set', 'destroy'].forEach(m => {
     expect(store.calls[m]).to.be.deep.equal(calls[m])
   })
+  store.clearCalls()
 }
 
 
 describe('session with async store', () => {
   const app = new Koa()
   const key = 'koa:sess'
-  const store = new AsyncSpyStore()
+  const store = new SpyStore()
 
   app.use(session({
-    store
+    store,
   }))
   app.use(updateSession)
   app.use(sessionToBody)
 
   const client = request(app.listen())
   let startTime
+  let ttl
 
   beforeEach(() => {
     store.clear()
     ttl = 24 * 3600 * 1000 // one day in milliseconds
     startTime = Date.now()
-  });
+  })
+
+  it('should work and not set cookie for empty session', done => {
+    client.get('/').expect(200).end((err, res) => {
+      if (err) done(err)
+      validateBody(res, startTime)
+      expect(res.header['set-cookie']).to.be.equal(undefined)
+    })
+    validateStoreCalls(store, {
+      get: [],
+      set: [],
+      destroy: [],
+    })
+    done()
+  })
 
   it('should work and set session cookie', (done) => {
     client.get('/set/time').expect(200).end((err, res) => {
@@ -92,7 +110,7 @@ describe('session with async store', () => {
           if (err) reject(err)
           validateCookie(res, key)
           validateBody(res, startTime)
-          resolve(res.body.sid)
+          resolve(res.body)
         })
       }),
       new Promise((resolve, reject) => {
@@ -100,14 +118,19 @@ describe('session with async store', () => {
           if (err) reject(err)
           validateCookie(res, key)
           validateBody(res, startTime)
-          resolve(res.body.sid)
+          resolve(res.body)
         })
+      }),
+    ]).then(bodies => {
+      expect(bodies[0].sid).to.be.not.equal(bodies[1].sid)
+      validateStoreCalls(store, {
+        get: [],
+        set: [
+          [`${key}:${bodies[0].sid}`, bodies[0].data, ttl],
+          [`${key}:${bodies[1].sid}`, bodies[1].data, ttl],
+        ],
+        destroy: [],
       })
-    ]).then(sids => {
-      expect(sids[0]).to.be.not.equal(sids[1])
-      expect(store.calls.get.length).to.be.equal(0)
-      expect(store.calls.set.length).to.be.equal(2)
-      expect(store.calls.destroy.length).to.be.equal(0)
       done()
     }).catch((err) => {
       done(err)
@@ -137,28 +160,25 @@ describe('session with async store', () => {
         validateStoreCalls(store, {
           get: [],
           set: [
-            [`${key}:${res1.body.sid}`, res1.body.data, ttl],
             [`${key}:${res2.body.sid}`, res2.body.data, ttl],
           ],
           destroy: [],
         })
 
-        client.get('/').set('cookie', `${key}=${body1.sid}`).expect(200).end((err3, res3) => {
-          if (err3) done(err3)
-          expect(res3.header['set-cookie']).to.be.equal(undefined)
-          expect(res3.body).to.be.deep.equal(body1)
-          validateStoreCalls(store, {
-            get: [
-              [`${key}:${res1.body.sid}`],
-            ],
-            set: [
-              [`${key}:${res1.body.sid}`, res1.body.data, ttl],
-              [`${key}:${res2.body.sid}`, res2.body.data, ttl],
-            ],
-            destroy: [],
+        client.get('/').set('cookie', `${key}=${body1.sid}`)
+          .expect(200).end((err3, res3) => {
+            if (err3) done(err3)
+            expect(res3.header['set-cookie']).to.be.equal(undefined)
+            expect(res3.body).to.be.deep.equal(body1)
+            validateStoreCalls(store, {
+              get: [
+                [`${key}:${res1.body.sid}`],
+              ],
+              set: [],
+              destroy: [],
+            })
+            done()
           })
-          done()
-        })
       })
     })
   })
@@ -177,68 +197,43 @@ describe('session with async store', () => {
       })
 
       const body1 = res1.body
-      client.get('/set/empty').set('cookie', `${key}=${body1.sid}`).expect(200).end((err2, res2) => {
-        if (err2) done(err2)
-        expect(res2.header['set-cookie']).to.be.equal(undefined)
-        expect(res2.body).to.be.deep.equal({
-          sid: body1.sid,
-          data: {},
-        })
-        validateStoreCalls(store, {
-          get: [
-            [`${key}:${res1.body.sid}`],
-          ],
-          set: [
-            [`${key}:${res1.body.sid}`, res1.body.data, ttl],
-          ],
-          destroy: [
-            [`${key}:${res1.body.sid}`],
-          ],
-        })
-
-        client.get('/').set('cookie', `${key}=${body1.sid}`).expect(200).end((err3, res3) => {
-          if (err3) done(err3)
-          expect(res3.header['set-cookie']).to.be.equal(undefined)
-          expect(res3.body).to.be.deep.equal({
+      client.get('/set/empty').set('cookie', `${key}=${body1.sid}`)
+        .expect(200).end((err2, res2) => {
+          if (err2) done(err2)
+          expect(res2.body).to.be.deep.equal({
             sid: body1.sid,
             data: {},
           })
+          res2.body.sid = ''
+          validateCookie(res2, key)
           validateStoreCalls(store, {
             get: [
               [`${key}:${res1.body.sid}`],
-              [`${key}:${res1.body.sid}`],
             ],
-            set: [
-              [`${key}:${res1.body.sid}`, res1.body.data, ttl],
-            ],
+            set: [],
             destroy: [
               [`${key}:${res1.body.sid}`],
             ],
           })
 
-          client.get('/set/time').set('cookie', `${key}=${body1.sid}`).expect(200).end((err4, res4) => {
-            if (err4) done(err4)
-            expect(res4.header['set-cookie']).to.be.equal(undefined)
-            validateBody(res4, startTime)
-            expect(res4.body.sid).to.be.equal(body1.sid)
-            validateStoreCalls(store, {
-              get: [
-                [`${key}:${res1.body.sid}`],
-                [`${key}:${res1.body.sid}`],
-                [`${key}:${res1.body.sid}`],
-              ],
-              set: [
-                [`${key}:${res1.body.sid}`, res1.body.data, ttl],
-                [`${key}:${res1.body.sid}`, res4.body.data, ttl],
-              ],
-              destroy: [
-                [`${key}:${res1.body.sid}`],
-              ],
+          client.get('/').set('cookie', `${key}=${body1.sid}`)
+            .expect(200).end((err3, res3) => {
+              if (err3) done(err3)
+              expect(res3.header['set-cookie']).to.be.equal(undefined)
+              expect(res3.body).to.be.deep.equal({
+                sid: body1.sid,
+                data: {},
+              })
+              validateStoreCalls(store, {
+                get: [
+                  [`${key}:${res1.body.sid}`],
+                ],
+                set: [],
+                destroy: [],
+              })
+              done()
             })
-            done()
-          })
         })
-      })
     })
   })
 
@@ -256,68 +251,43 @@ describe('session with async store', () => {
       })
 
       const body1 = res1.body
-      client.get('/set/null').set('cookie', `${key}=${body1.sid}`).expect(200).end((err2, res2) => {
-        if (err2) done(err2)
-        expect(res2.header['set-cookie']).to.be.equal(undefined)
-        expect(res2.body).to.be.deep.equal({
-          sid: body1.sid,
-          data: null,
-        })
-        validateStoreCalls(store, {
-          get: [
-            [`${key}:${res1.body.sid}`],
-          ],
-          set: [
-            [`${key}:${res1.body.sid}`, res1.body.data, ttl],
-          ],
-          destroy: [
-            [`${key}:${res1.body.sid}`],
-          ],
-        })
-
-        client.get('/').set('cookie', `${key}=${body1.sid}`).expect(200).end((err3, res3) => {
-          if (err3) done(err3)
-          expect(res3.header['set-cookie']).to.be.equal(undefined)
-          expect(res3.body).to.be.deep.equal({
+      client.get('/set/null').set('cookie', `${key}=${body1.sid}`)
+        .expect(200).end((err2, res2) => {
+          if (err2) done(err2)
+          expect(res2.body).to.be.deep.equal({
             sid: body1.sid,
-            data: {},
+            data: null,
           })
+          res2.body.sid = ''
+          validateCookie(res2, key)
           validateStoreCalls(store, {
             get: [
               [`${key}:${res1.body.sid}`],
-              [`${key}:${res1.body.sid}`],
             ],
-            set: [
-              [`${key}:${res1.body.sid}`, res1.body.data, ttl],
-            ],
+            set: [],
             destroy: [
               [`${key}:${res1.body.sid}`],
             ],
           })
 
-          client.get('/set/time').set('cookie', `${key}=${body1.sid}`).expect(200).end((err4, res4) => {
-            if (err4) done(err4)
-            expect(res4.header['set-cookie']).to.be.equal(undefined)
-            validateBody(res4, startTime)
-            expect(res4.body.sid).to.be.equal(body1.sid)
-            validateStoreCalls(store, {
-              get: [
-                [`${key}:${res1.body.sid}`],
-                [`${key}:${res1.body.sid}`],
-                [`${key}:${res1.body.sid}`],
-              ],
-              set: [
-                [`${key}:${res1.body.sid}`, res1.body.data, ttl],
-                [`${key}:${res1.body.sid}`, res4.body.data, ttl],
-              ],
-              destroy: [
-                [`${key}:${res1.body.sid}`],
-              ],
+          client.get('/').set('cookie', `${key}=${body1.sid}`)
+            .expect(200).end((err3, res3) => {
+              if (err3) done(err3)
+              expect(res3.header['set-cookie']).to.be.equal(undefined)
+              expect(res3.body).to.be.deep.equal({
+                sid: body1.sid,
+                data: {},
+              })
+              validateStoreCalls(store, {
+                get: [
+                  [`${key}:${res1.body.sid}`],
+                ],
+                set: [],
+                destroy: [],
+              })
+              done()
             })
-            done()
-          })
         })
-      })
     })
   })
 
@@ -335,48 +305,47 @@ describe('session with async store', () => {
       })
 
       const body1 = res1.body
-      client.get('/regenerate_id').set('cookie', `${key}=${body1.sid}`).expect(200).end((err2, res2) => {
-        if (err2) done(err2)
-        validateCookie(res2, key)
-        validateBody(res2, startTime)
-        expect(res2.body.sid).to.be.not.equal(body1.sid)
-        expect(res2.body.data.time).to.be.equal(body1.data.time)
-        validateStoreCalls(store, {
-          get: [
-            [`${key}:${res1.body.sid}`],
-          ],
-          set: [
-            [`${key}:${res1.body.sid}`, res1.body.data, ttl],
-            [`${key}:${res2.body.sid}`, res2.body.data, ttl],
-          ],
-          destroy: [
-            [`${key}:${res1.body.sid}`],
-          ],
-        })
-
-        const body2 = res2.body
-        client.get('/').set('cookie', `${key}=${body2.sid}`).expect(200).end((err3, res3) => {
-          if (err3) done(err3)
-          expect(res3.header['set-cookie']).to.be.equal(undefined)
-          validateBody(res3, startTime)
-          expect(res3.body.sid).to.be.equal(body2.sid)
-          expect(res3.body.data.time).to.be.equal(body2.data.time)
+      client.get('/regenerate_id').set('cookie', `${key}=${body1.sid}`)
+        .expect(200).end((err2, res2) => {
+          if (err2) done(err2)
+          validateCookie(res2, key)
+          validateBody(res2, startTime)
+          expect(res2.body.sid).to.be.not.equal(body1.sid)
+          expect(res2.body.data.time).to.be.equal(body1.data.time)
           validateStoreCalls(store, {
             get: [
               [`${key}:${res1.body.sid}`],
-              [`${key}:${res2.body.sid}`],
             ],
             set: [
-              [`${key}:${res1.body.sid}`, res1.body.data, ttl],
               [`${key}:${res2.body.sid}`, res2.body.data, ttl],
             ],
             destroy: [
               [`${key}:${res1.body.sid}`],
             ],
           })
-          done()
+
+          const body2 = res2.body
+          client.get('/').set('cookie', `${key}=${body2.sid}`)
+            .expect(200).end((err3, res3) => {
+              if (err3) done(err3)
+              expect(res3.header['set-cookie']).to.be.equal(undefined)
+              validateBody(res3, startTime)
+              expect(res3.body.sid).to.be.equal(body2.sid)
+              expect(res3.body.data.time).to.be.equal(body2.data.time)
+              validateStoreCalls(store, {
+                get: [
+                  [`${key}:${res2.body.sid}`],
+                ],
+                set: [],
+                destroy: [],
+              })
+              done()
+            })
         })
-      })
     })
+  })
+
+  it('ttl(ms) should set ttl', done => {
+    done()
   })
 })
