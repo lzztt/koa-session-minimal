@@ -7,9 +7,7 @@ const SpyStore = require('./spy_store').AsyncSpyStore
 const updateSession = (ctx, next) => {
   switch (ctx.url) {
     case '/set/time':
-      ctx.session = {
-        time: Date.now(),
-      }
+      ctx.session.time = Date.now()
       break
     case '/set/null':
       ctx.session = null
@@ -21,6 +19,11 @@ const updateSession = (ctx, next) => {
       ctx.sessionHandler.regenerateId()
       break
     default:
+      if (ctx.url.startsWith('/maxage/')) {
+        const ms = parseInt(ctx.url.replace('/maxage/', ''), 10)
+        ctx.sessionHandler.setMaxAge(ms)
+        ctx.session.time = Date.now()
+      }
   }
   next()
 }
@@ -345,7 +348,33 @@ describe('session with async store', () => {
     })
   })
 
-  it('ttl(ms) should set ttl', done => {
-    done()
+  it('setMaxAge(ms) should set maxAge and ttl', done => {
+    client.get('/maxage/0').expect(200).end((err1, res1) => {
+      if (err1) done(err1)
+      validateCookie(res1, key)
+      validateBody(res1, startTime)
+      validateStoreCalls(store, {
+        get: [],
+        set: [
+          [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+        ],
+        destroy: [],
+      })
+
+      const maxAge = 1000
+      client.get(`/maxage/${maxAge}`).expect(200).end((err2, res2) => {
+        if (err2) done(err2)
+        validateCookie(res2, key)
+        validateBody(res2, startTime)
+        validateStoreCalls(store, {
+          get: [],
+          set: [
+            [`${key}:${res2.body.sid}`, res2.body.data, maxAge],
+          ],
+          destroy: [],
+        })
+        done()
+      })
+    })
   })
 })
