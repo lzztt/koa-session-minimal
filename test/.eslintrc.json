@@ -25,6 +25,7 @@
       }
     ],
     "prefer-rest-params": "off",
-    "require-yield": "off"
+    "require-yield": "off",
+    "strict": "off"
   }
 }
