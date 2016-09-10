@@ -8,7 +8,7 @@ Minimal implementation of session middleware for Koa 2. Inspired by and compatib
 This is a native Koa 2 middleware. It supports existing session stores (via the `co` wrapper) for `koa-generic-session`. It can be used as a drop-in replacement for `koa-generic-session` in Koa 2.
 
 ## Runtime Requirements
-Koa 2 Koa requires node v4.0.0 or higher for (partial) ES2015 support. The middleware has been tested on node 4, 5 and 6.
+Koa 2 requires `node v4.0.0` or higher for (partial) ES2015 support. The middleware has been tested on node 4, 5 and 6.
 
 ## Installation
 
