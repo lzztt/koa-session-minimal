@@ -4,7 +4,8 @@
   "description": "simple session for Koa 2",
   "main": "lib/session.js",
   "scripts": {
-    "test": "mocha --compilers js:babel-register test"
+    "lint": "eslint lib test",
+    "test": "mocha --harmony test"
   },
   "repository": {
     "type": "git",
