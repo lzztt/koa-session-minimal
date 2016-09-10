@@ -22,6 +22,7 @@
   "homepage": "https://github.com/longztian/koa-session-minimal#readme",
   "dependencies": {
     "co": "^4.6.0",
+    "deep-equal": "^1.0.1",
     "uid-safe": "^2.1.2"
   },
   "devDependencies": {
