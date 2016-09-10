@@ -6,9 +6,7 @@ const session = require('../lib/session')
 const updateSession = (ctx, next) => {
   switch (ctx.url) {
     case '/set/time':
-      ctx.session = {
-        time: Date.now(),
-      }
+      ctx.session.time = Date.now()
       break
     case '/set/null':
       ctx.session = null
