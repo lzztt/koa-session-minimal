@@ -10,7 +10,7 @@ This is a native Koa 2 middleware. It supports existing session stores (via the 
 ## Runtime Requirements
 
 This is an `async` middleware thus has the same runtime requirements as Koa 2:
-- node version >= 4
+- node version `>= 4`
 - `--harmony` option is needed for for node 4 and 5
 - `transform-async-to-generator` plugin is needed for babel
 
@@ -51,26 +51,26 @@ app.listen(3000)
 ## Interfaces
 - session data via `ctx.session` (the same way as `koa-generic-session`)
 - session methods via `ctx.sessionHandler`
-..- `getId()`: get session id
-..- `regenerateId()`: regenerate session id
-..- `setMaxAge(ms)`: update session's maxAge, only take effect when session data has been changed
+  - `getId()`: get session id
+  - `regenerateId()`: regenerate session id
+  - `setMaxAge(ms)`: update session's `maxAge`, only take effect when session data has been changed
 
 ## Options
-  - `key`: session cookie name and store key prefix
-  - `store`: session store
-  - `cookie`: cookie options (see option details in `cookies` module)
+- `key`: session cookie name and store key prefix
+- `store`: session store
+- `cookie`: cookie options (see option details in [`cookies`](https://github.com/pillarjs/cookies) module)
 
 ## Session Store *(copied from `koa-generic-session`)*
 
 You can use any other store to replace the default MemoryStore, it just needs to follow this api:
 
-* `get(sid)`: get session object by sid
-* `set(sid, sess, ttl)`: set session object for sid, with a ttl (in ms)
-* `destroy(sid)`: destroy session for sid
+- `get(sid)`: get session object by sid
+- `set(sid, sess, ttl)`: set session object for sid, with a ttl (in ms)
+- `destroy(sid)`: destroy session for sid
 
 the api needs to return a Promise, Thunk, generator, or an async function.
 
-### Stores Presented *(copied from `koa-generic-session`, tested with `koa-redis`)*
+## Stores Presented *(copied from `koa-generic-session`, tested with `koa-redis`)*
 
 - [koa-redis](https://github.com/koajs/koa-redis) to store your session data with redis.
 - [koa-mysql-session](https://github.com/tb01923/koa-mysql-session) to store your session data with MySQL.
