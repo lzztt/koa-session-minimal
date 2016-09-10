@@ -1,3 +1,4 @@
+/* prefer-rest-params */
 class AsyncSpyStore {
   constructor() {
     this.clear()
@@ -5,6 +6,10 @@ class AsyncSpyStore {
 
   clear() {
     this.sessions = {}
+    this.clearCalls()
+  }
+
+  clearCalls() {
     this.calls = {
       get: [],
       set: [],
@@ -35,6 +40,10 @@ class GeneratorSpyStore {
 
   clear() {
     this.sessions = {}
+    this.clearCalls()
+  }
+
+  clearCalls() {
     this.calls = {
       get: [],
       set: [],
