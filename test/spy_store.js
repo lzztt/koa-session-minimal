@@ -20,17 +20,17 @@ class AsyncSpyStore {
   }
 
   async get(sid) {
-    this.calls.get.push([...arguments])
+    this.calls.get.push(Array.from(arguments))
     return this.sessions[sid]
   }
 
   async set(sid, val, ttl) { // eslint-disable-line no-unused-vars
-    this.calls.set.push([...arguments])
+    this.calls.set.push(Array.from(arguments))
     this.sessions[sid] = val
   }
 
   async destroy(sid) {
-    this.calls.destroy.push([...arguments])
+    this.calls.destroy.push(Array.from(arguments))
     delete this.sessions[sid]
   }
 }
@@ -54,17 +54,17 @@ class GeneratorSpyStore {
   }
 
   * get(sid) {
-    this.calls.get.push([...arguments])
+    this.calls.get.push(Array.from(arguments))
     return this.sessions[sid]
   }
 
   * set(sid, val, ttl) { // eslint-disable-line no-unused-vars
-    this.calls.set.push([...arguments])
+    this.calls.set.push(Array.from(arguments))
     this.sessions[sid] = val
   }
 
   * destroy(sid) {
-    this.calls.destroy.push([...arguments])
+    this.calls.destroy.push(Array.from(arguments))
     delete this.sessions[sid]
   }
 }

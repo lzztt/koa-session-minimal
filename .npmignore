@@ -1,5 +1,6 @@
-/test
 .editorconfig
 .eslintrc.json
 .gitignore
 .travis.yml
+/test
+/dist/test
