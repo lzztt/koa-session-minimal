@@ -8,11 +8,7 @@ Minimal implementation of session middleware for Koa 2. Inspired by and compatib
 This is a native Koa 2 middleware. It supports existing session stores (via the `co` wrapper) for `koa-generic-session`. It can be used as a drop-in replacement for `koa-generic-session` in Koa 2.
 
 ## Runtime Requirements
-
-This is an `async` middleware thus has the same runtime requirements as Koa 2:
-- node version `>= 4`
-- `--harmony` option is needed for for node 4 and 5
-- `transform-async-to-generator` plugin is needed for babel
+Koa 2 Koa requires node v4.0.0 or higher for (partial) ES2015 support. The middleware has been tested on node 4, 5 and 6.
 
 ## Installation
 
