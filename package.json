@@ -5,8 +5,9 @@
   "main": "dist/session.js",
   "scripts": {
     "lint": "eslint lib test",
-    "test": "mocha --harmony test",
-    "dist": "babel lib -d dist"
+    "test": "mocha --compilers js:babel-register test",
+    "dist": "babel lib -d dist",
+    "dist-test": "babel test -d dist/test && sed -i 's@../lib/session@../..@' dist/test/*.test.js && mocha dist/test"
   },
   "repository": {
     "type": "git",
