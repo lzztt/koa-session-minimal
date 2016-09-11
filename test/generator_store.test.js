@@ -3,7 +3,7 @@
 const Koa = require('koa')
 const request = require('supertest')
 const expect = require('chai').expect
-const session = require('../lib/session')
+const session = require('../src/session')
 const SpyStore = require('./spy_store').GeneratorSpyStore
 
 const updateSession = (ctx, next) => {
