@@ -10,11 +10,13 @@ Minimal implementation of session middleware for Koa 2. Inspired by and compatib
 
 This is a native Koa 2 middleware. It supports existing session stores (via the `co` wrapper) for `koa-generic-session`. It can be used as a drop-in replacement for `koa-generic-session` in Koa 2.
 
+
 ## Installation
 
 ```shell
 $ npm install koa-session-minimal
 ```
+
 
 ## Minimum features and storage usage
 
@@ -32,27 +34,11 @@ This middleware guarantees the following:
   - Context interfaces: `session`, `sessionHandler { getId(), regenerateId(), setMaxAge() }`
 
 
-## Session expiration
-
-Default session has settings `cookie.maxAge = 0` and `ttl = ONE_DAY`, means that this session will be expired in one of the following circumstances:
-- users close the browser window (transient cookie expires)
-- session data hasn't been updated within `ONE_DAY` (storage expires)
-
-With settings that `cookie.maxAge > 0`, `ttl` will be always the same as `maxAge`.
-
-When session data gets updated, middlewares can update the `maxAge` by calling `sessionHandler.setMaxAge()`. Then the session's expiration time will be extended with the new `maxAge` value.
-
-
-## Session security
-
-Middlewares are recommended to call `sessionHandler.regenerateId()` during authentication state change (login/logout). This middleware provides the essential interface, It will be other middleware's decision on when and how often they want to roll the session id.
-
-
 ## Usage
 
 ```javascript
 const Koa = require('koa')
-const session = require('..')
+const session = require('koa-session-minimal')
 const redisStore = require('koa-redis')
 
 const app = new Koa()
@@ -65,30 +51,49 @@ app.use(session({
 app.use(async (ctx, next) => {
   ctx.session.count = ctx.session.count || 0
   if (ctx.path === '/add') ctx.session.count++
-  await next()
-})
 
-// populate response body
-app.use(ctx => {
+  await next()
+
   ctx.body = ctx.sessionHandler.getId() + ' : ' + ctx.session.count
 })
 
 app.listen(3000)
 ```
 
+
 ## Interfaces
+
 - session data via `ctx.session` (the same way as `koa-generic-session`)
 - session methods via `ctx.sessionHandler`
   - `getId()`: get session id
   - `regenerateId()`: regenerate session id
   - `setMaxAge(ms)`: update session's `maxAge`, only take effect when session data has been changed
 
+
 ## Options
+
 - `key`: session cookie name and store key prefix
 - `store`: session store
 - `cookie`: cookie options, only supports `maxAge`, `path`, `domain`, `secure`, `httpOnly` (see option details in [`cookies`](https://github.com/pillarjs/cookies) module)
 
-## Session Store *(copied from `koa-generic-session`)*
+
+## Session expiration
+
+Default session has settings `cookie.maxAge = 0` and `ttl = ONE_DAY`, means that this session will be expired in one of the following circumstances:
+- A user close the browser window (transient cookie expires)
+- Session data hasn't been updated within `ONE_DAY` (storage expires)
+
+With settings that `cookie.maxAge > 0`, `ttl` will be always the same as `maxAge`.
+
+When session data gets updated, middlewares can update the `maxAge` by calling `sessionHandler.setMaxAge()`. Then the session's expiration time will be extended with the new `maxAge` value.
+
+
+## Session security
+
+Middlewares are recommended to call `sessionHandler.regenerateId()` during authentication state change (login/logout). This middleware provides the essential interface, It will be other middleware's decision on when and how often they want to roll the session id.
+
+
+## Session store *(copied from `koa-generic-session`)*
 
 You can use any other store to replace the default MemoryStore, it just needs to follow this api:
 
@@ -98,7 +103,8 @@ You can use any other store to replace the default MemoryStore, it just needs to
 
 the api needs to return a Promise, Thunk, generator, or an async function.
 
-## Stores Presented *(copied from `koa-generic-session`, tested with `koa-redis`)*
+
+## Stores presented *(copied from `koa-generic-session`, tested with `koa-redis`)*
 
 - [koa-redis](https://github.com/koajs/koa-redis) to store your session data with redis.
 - [koa-mysql-session](https://github.com/tb01923/koa-mysql-session) to store your session data with MySQL.
@@ -107,9 +113,11 @@ the api needs to return a Promise, Thunk, generator, or an async function.
 - [koa-generic-session-rethinkdb](https://github.com/KualiCo/koa-generic-session-rethinkdb) to store your session data with ReThinkDB.
 - [koa-sqlite3-session](https://github.com/chichou/koa-sqlite3-session) to store your session data with SQLite3.
 
+
 # License
 
   MIT
+
 
 [npm-image]: https://img.shields.io/npm/v/koa-session-minimal.svg
 [npm-url]: https://www.npmjs.com/package/koa-session-minimal
