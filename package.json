@@ -7,7 +7,10 @@
     "lint": "eslint lib test",
     "test": "mocha --compilers js:babel-register test",
     "dist": "babel lib -d dist",
-    "dist-test": "babel test -d dist/test && sed -i 's@../lib/session@../..@' dist/test/*.test.js && mocha dist/test"
+    "dist-test": "babel test -d dist/test && sed -i 's@../lib/session@../..@' dist/test/*.test.js && mocha dist/test",
+    "cov": "babel --plugins='external-helpers' lib -d cov && babel-external-helpers -l asyncToGenerator > cov/helper.js",
+    "cov-test": "babel test -d cov/test && sed -i 's@../lib@..@' cov/test/*.test.js && istanbul cover -x cov/helper.js -- ./node_modules/.bin/_mocha --require cov/helper.js cov/test",
+    "clean": "rm -rf dist cov coverage"
   },
   "repository": {
     "type": "git",
@@ -31,12 +34,14 @@
   "devDependencies": {
     "babel-cli": "^6.14.0",
     "babel-eslint": "^6.1.2",
+    "babel-plugin-external-helpers": "^6.8.0",
     "babel-plugin-transform-async-to-generator": "^6.8.0",
     "babel-register": "^6.14.0",
     "chai": "^3.5.0",
     "eslint": "^3.4.0",
     "eslint-config-airbnb-base": "^5.0.3",
     "eslint-plugin-import": "^1.14.0",
+    "istanbul": "^0.4.5",
     "koa": "^2.0.0-alpha.6",
     "koa-redis": "^2.1.2",
     "mocha": "^3.0.2",

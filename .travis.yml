@@ -9,3 +9,7 @@ script:
   - npm run test
   - npm run dist
   - npm run dist-test
+  - npm run cov
+  - npm run cov-test
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

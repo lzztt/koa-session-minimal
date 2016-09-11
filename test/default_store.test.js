@@ -10,6 +10,9 @@ const updateSession = (ctx, next) => {
     case '/set/time':
       ctx.session.time = Date.now()
       break
+    case '/set/random':
+      ctx.session.random = Math.random()
+      break
     case '/set/null':
       ctx.session = null
       break
@@ -122,7 +125,19 @@ describe('session with default memory store', () => {
             if (err3) done(err3)
             expect(res3.header['set-cookie']).to.be.equal(undefined)
             expect(res3.body).to.be.deep.equal(body1)
-            done()
+
+            const body2 = res2.body
+            client.get('/set/random').set('cookie', `${key}=${body2.sid}`)
+              .expect(200).end((err4, res4) => {
+                if (err4) done(err4)
+                validateCookie(res4, key)
+                validateBody(res4, body2.data.time)
+                expect(res4.body.sid).to.be.equal(body2.sid)
+                expect(res4.body.data.time).to.be.equal(body2.data.time)
+                expect(body2.data.random).to.not.exist // eslint-disable-line no-unused-expressions
+                expect(res4.body.data.random).to.exist // eslint-disable-line no-unused-expressions
+                done()
+              })
           })
       })
     })
@@ -215,6 +230,43 @@ describe('session with default memory store', () => {
               expect(res3.body.data.time).to.be.equal(body2.data.time)
               done()
             })
+        })
+    })
+  })
+})
+
+describe('default memory store with customized cookie options', () => {
+  const app = new Koa()
+  const key = 'koa:sess'
+
+  app.use(session({
+    cookie: {
+      maxAge: -1000,
+    },
+  }))
+  app.use(updateSession)
+  app.use(sessionToBody)
+
+  const client = request(app.listen())
+  let startTime
+
+  beforeEach(() => {
+    startTime = Date.now()
+  })
+
+  it('negative maxAge value will be treated as 0 (default value)', done => {
+    client.get('/set/time').expect(200).end((err1, res1) => {
+      if (err1) done(err1)
+      validateCookie(res1, key)
+      validateBody(res1, startTime)
+
+      const body1 = res1.body
+      client.get('/').set('cookie', `${key}=${body1.sid}`)
+        .expect(200).end((err2, res2) => {
+          if (err2) done(err2)
+          expect(res2.header['set-cookie']).to.be.equal(undefined)
+          expect(res2.body).to.be.deep.equal(body1)
+          done()
         })
     })
   })
