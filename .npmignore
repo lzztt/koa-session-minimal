@@ -4,5 +4,5 @@
 .travis.yml
 /test
 /dist/test
-/cov
+/build
 /coverage
