@@ -7,9 +7,7 @@ node_js:
 script:
   - npm run lint
   - npm run test
+  - npm run test-travis
   - npm run dist
-  - npm run dist-test
-  - npm run cov
-  - npm run cov-test
 after_success:
   - bash <(curl -s https://codecov.io/bash)
