@@ -2,6 +2,8 @@
 
 [![NPM version][npm-image]][npm-url]
 [![Build Status][travis-image]][travis-url]
+[![codecov][codecov-image]][codecov-url]
+
 
 Minimal implementation of session middleware for Koa 2. Inspired by and compatible with [koa-generic-session](https://github.com/koajs/generic-session). It is a re-write of `koa-generic-session` with its essential functionalities, with around 100 lines of code in ES6.
 
@@ -80,3 +82,5 @@ the api needs to return a Promise, Thunk, generator, or an async function.
 [npm-url]: https://www.npmjs.com/package/koa-session-minimal
 [travis-image]: https://travis-ci.org/longztian/koa-session-minimal.svg?branch=master
 [travis-url]: https://travis-ci.org/longztian/koa-session-minimal
+[codecov-image]: https://codecov.io/gh/longztian/koa-session-minimal/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/longztian/koa-session-minimal
