@@ -16,6 +16,34 @@ This is a native Koa 2 middleware. It supports existing session stores (via the 
 $ npm install koa-session-minimal
 ```
 
+## Minimum features and storage usage:
+This middleware guarantees the following:
+- A session only contains data populated via `ctx.session` object by other middlewares. It is an empty object by default.
+  - No cookie and storage record will be generated unless session data gets populated
+  - It will not store cookie info in session store (try to resolve [this concern](https://github.com/koajs/generic-session/issues/72)).
+- Only store non-empty session. Only set/update the SID cookie and flush backend storage when session data has been changed.
+  - When `ctx.session` gets updated (becomes a non-empty object), cookie and storage will be updated with the new data and new expiration time (maxAge, ttl).
+  - When `ctx.session` gets cleared ( `== {}` or `null` ), cookie and storage data will get deleted.
+  - If a session has not been updated within `maxAge`, its data will be expired.
+- Only expose minimum public interfaces and configuration options
+  - Cookie options: `maxAge`, `path`, `domain`, `secure`, `httpOnly`
+  - Store interfaces: `get()`, `set()`, `destroy()`
+  - Context interfaces: `session`, `sessionHandler { getId(), regenerateId(), setMaxAge() }`
+
+
+## Session expiration
+Default session has settings `cookie.maxAge = 0` and `ttl = ONE_DAY`, means that this session will be expired in one of the following circumstances:
+- users close browser window (transient cookie expires)
+- session data hasn't been updated within `ONE_DAY` (storage expires)
+With settings that `cookie.maxAge > 0` , `ttl` will be always the same as `maxAge`.
+
+When session data gets updated, middlewares can update the `maxAge` by calling `sessionHandler.setMaxAge()`. Then the session's expiration time will be extended with the new `maxAge` value.
+
+
+## Session security:
+Middlewares are recommended to call `sessionHandler.regenerateId()` during authentication state change (login/logout). Currently, it will be other middleware's decision on when and how often they want to roll the session id.
+
+
 ## Usage
 
 ```javascript
