@@ -26,12 +26,12 @@ This middleware guarantees the following:
   - It will not store cookie info in session store (try to resolve [this concern](https://github.com/koajs/generic-session/issues/72)).
 - Only store non-empty session. Only set/update the SID cookie and flush backend storage when session data has been changed.
   - When `ctx.session` gets updated (becomes a non-empty object), cookie and storage will be updated with the new data and new expiration time (`maxAge`, `ttl`).
-  - When `ctx.session` gets cleared ( `== {}` or `null` ), cookie and storage data will get deleted.
+  - When `ctx.session` gets cleared ( `= {}` or `null` ), cookie and storage data will get deleted.
   - If a session has not been updated within `maxAge`, its data will be expired.
 - Only expose minimum public interfaces and configuration options
   - Cookie options: `maxAge`, `path`, `domain`, `secure`, `httpOnly`
+  - Session interfaces: `session`, `sessionHandler { getId(), regenerateId(), setMaxAge() }`
   - Store interfaces: `get()`, `set()`, `destroy()`
-  - Context interfaces: `session`, `sessionHandler { getId(), regenerateId(), setMaxAge() }`
 
 
 ## Usage
