@@ -11,6 +11,9 @@ const updateSession = (ctx, next) => {
     case '/set/time':
       ctx.session.time = Date.now()
       break
+    case '/set/random':
+      ctx.session.random = Math.random()
+      break
     case '/set/null':
       ctx.session = null
       break
@@ -177,12 +180,33 @@ describe('session with generator store', () => {
             expect(res3.body).to.be.deep.equal(body1)
             validateStoreCalls(store, {
               get: [
-                [`${key}:${res1.body.sid}`],
+                [`${key}:${body1.sid}`],
               ],
               set: [],
               destroy: [],
             })
-            done()
+
+            const body2 = res2.body
+            client.get('/set/random').set('cookie', `${key}=${body2.sid}`)
+              .expect(200).end((err4, res4) => {
+                if (err4) done(err4)
+                validateCookie(res4, key)
+                validateBody(res4, body2.data.time)
+                expect(res4.body.sid).to.be.equal(body2.sid)
+                expect(res4.body.data.time).to.be.equal(body2.data.time)
+                expect(body2.data.random).to.not.exist // eslint-disable-line no-unused-expressions
+                expect(res4.body.data.random).to.exist // eslint-disable-line no-unused-expressions
+                validateStoreCalls(store, {
+                  get: [
+                    [`${key}:${body2.sid}`],
+                  ],
+                  set: [
+                    [`${key}:${body2.sid}`, res4.body.data, ttl],
+                  ],
+                  destroy: [],
+                })
+                done()
+              })
           })
       })
     })
@@ -375,8 +399,77 @@ describe('session with generator store', () => {
           ],
           destroy: [],
         })
-        done()
+
+        client.get('/maxage/-1').expect(200).end((err3, res3) => {
+          if (err3) done(err3)
+          validateCookie(res3, key)
+          validateBody(res3, startTime)
+          validateStoreCalls(store, {
+            get: [],
+            set: [
+              [`${key}:${res3.body.sid}`, res3.body.data, ttl],
+            ],
+            destroy: [],
+          })
+          done()
+        })
       })
+    })
+  })
+})
+
+describe('generator store with customized cookie options', () => {
+  const app = new Koa()
+  const key = 'koa:sess'
+  const store = new SpyStore()
+
+  app.use(session({
+    store,
+    cookie: {
+      maxAge: -1000,
+    },
+  }))
+  app.use(updateSession)
+  app.use(sessionToBody)
+
+  const client = request(app.listen())
+  let startTime
+  let ttl
+
+  beforeEach(() => {
+    store.clear()
+    ttl = 24 * 3600 * 1000 // one day in milliseconds
+    startTime = Date.now()
+  })
+
+  it('negative maxAge value will be treated as 0 (default value)', done => {
+    client.get('/set/time').expect(200).end((err1, res1) => {
+      if (err1) done(err1)
+      validateCookie(res1, key)
+      validateBody(res1, startTime)
+      validateStoreCalls(store, {
+        get: [],
+        set: [
+          [`${key}:${res1.body.sid}`, res1.body.data, ttl],
+        ],
+        destroy: [],
+      })
+
+      const body1 = res1.body
+      client.get('/').set('cookie', `${key}=${body1.sid}`)
+        .expect(200).end((err2, res2) => {
+          if (err2) done(err2)
+          expect(res2.header['set-cookie']).to.be.equal(undefined)
+          expect(res2.body).to.be.deep.equal(body1)
+          validateStoreCalls(store, {
+            get: [
+              [`${key}:${body1.sid}`],
+            ],
+            set: [],
+            destroy: [],
+          })
+          done()
+        })
     })
   })
 })
