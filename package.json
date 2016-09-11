@@ -4,13 +4,12 @@
   "description": "Minimal implementation of session middleware for Koa 2. Inspired by and compatible with koa-generic-session",
   "main": "dist/session.js",
   "scripts": {
-    "lint": "eslint lib test",
-    "test": "mocha --compilers js:babel-register test",
-    "dist": "babel lib -d dist",
-    "dist-test": "babel test -d dist/test && sed -i 's@../lib/session@../..@' dist/test/*.test.js && mocha dist/test",
-    "cov": "babel --plugins='external-helpers' lib -d cov && babel-external-helpers -l asyncToGenerator > cov/helper.js",
-    "cov-test": "babel test -d cov/test && sed -i 's@../lib@..@' cov/test/*.test.js && istanbul cover -x cov/helper.js -- ./node_modules/.bin/_mocha --require cov/helper.js cov/test",
-    "clean": "rm -rf dist cov coverage"
+    "lint": "make lint",
+    "test": "make test",
+    "test-cov": "make test-cov",
+    "test-travis": "make test-travis",
+    "dist": "make dist",
+    "clean": "make clean"
   },
   "repository": {
     "type": "git",
