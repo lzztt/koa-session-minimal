@@ -5,15 +5,15 @@ module.exports = class MemoryStore {
     this.sessions = {}
   }
 
-  async get(sid) {
+  get(sid) {
     return this.sessions[sid]
   }
 
-  async set(sid, val, ttl) { // eslint-disable-line no-unused-vars
+  set(sid, val, ttl) { // eslint-disable-line no-unused-vars
     this.sessions[sid] = val
   }
 
-  async destroy(sid) {
+  destroy(sid) {
     delete this.sessions[sid]
   }
 }
