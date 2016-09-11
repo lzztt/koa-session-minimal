@@ -1,6 +1,7 @@
 # koa-session-minimal
 
 [![NPM version][npm-image]][npm-url]
+[![Downloads][downloads-image]][downloads-url]
 [![Build Status][travis-image]][travis-url]
 [![codecov][codecov-image]][codecov-url]
 
@@ -80,6 +81,8 @@ the api needs to return a Promise, Thunk, generator, or an async function.
 
 [npm-image]: https://img.shields.io/npm/v/koa-session-minimal.svg
 [npm-url]: https://www.npmjs.com/package/koa-session-minimal
+[downloads-image]: http://img.shields.io/npm/dm/koa-session-minimal.svg
+[downloads-url]: https://www.npmjs.com/package/koa-session-minimal
 [travis-image]: https://travis-ci.org/longztian/koa-session-minimal.svg?branch=master
 [travis-url]: https://travis-ci.org/longztian/koa-session-minimal
 [codecov-image]: https://codecov.io/gh/longztian/koa-session-minimal/branch/master/graph/badge.svg
