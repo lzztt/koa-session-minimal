@@ -8,7 +8,7 @@ app.use(session({
   store: redisStore(),
 }))
 
-// update session count
+// count middleware, increment when url = /add
 app.use(async (ctx, next) => {
   ctx.session.count = ctx.session.count || 0
   if (ctx.path === '/add') ctx.session.count++
