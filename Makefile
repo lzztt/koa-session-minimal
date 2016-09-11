@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := dist
+
 lint:
 	eslint src test
 
@@ -25,7 +27,7 @@ test-travis:
 		./node_modules/.bin/_mocha --require build/helper.js --bail \
 		build/test
 
-dist:
+dist: src/*.js test/*.js
 	rm -rf dist && \
 		babel src -d dist && \
 		babel test -d dist/test && \
@@ -35,5 +37,3 @@ dist:
 
 clean:
 	rm -rf dist build coverage
-
-.PHONY: test
