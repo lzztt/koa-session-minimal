@@ -1,4 +1,5 @@
 .DEFAULT_GOAL := dist
+.PHONY: lint test test-cov test-travis clean
 
 lint:
 	eslint src test
