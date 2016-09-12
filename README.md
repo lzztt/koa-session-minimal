@@ -30,7 +30,7 @@ This middleware guarantees the following:
   - If a session has not been updated within `maxAge`, its data will be expired.
 - Only expose minimum public interfaces and configuration options
   - Cookie options: `maxAge`, `path`, `domain`, `secure`, `httpOnly`
-  - Session interfaces: `session`, `sessionHandler { getId(), regenerateId(), setMaxAge() }`
+  - Session interfaces: `session`, `sessionHandler { regenerateId(), setMaxAge() }`
   - Store interfaces: `get()`, `set()`, `destroy()`
 
 
@@ -54,7 +54,7 @@ app.use(async (ctx, next) => {
 
   await next()
 
-  ctx.body = ctx.sessionHandler.getId() + ' : ' + ctx.session.count
+  ctx.body = ctx.session.count
 })
 
 app.listen(3000)
@@ -65,7 +65,6 @@ app.listen(3000)
 
 - session data via `ctx.session` (the same way as `koa-generic-session`)
 - session methods via `ctx.sessionHandler`
-  - `getId()`: get session id
   - `regenerateId()`: regenerate session id
   - `setMaxAge(ms)`: update session's `maxAge`, only take effect when session data has been changed
 
