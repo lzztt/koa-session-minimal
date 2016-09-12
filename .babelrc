@@ -1,3 +1,6 @@
 {
-  "plugins": ["transform-async-to-generator"]
+  "plugins": [
+    "transform-strict-mode",
+    "transform-async-to-generator"
+  ]
 }
