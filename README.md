@@ -89,7 +89,7 @@ When session data gets updated, middlewares can update the `maxAge` by calling `
 
 ## Session security
 
-Middlewares are recommended to call `sessionHandler.regenerateId()` during authentication state change (login/logout). This middleware provides the essential interface, It will be other middleware's decision on when and how often they want to roll the session id.
+Middlewares are recommended to call `sessionHandler.regenerateId()` during authentication state change (login). This middleware provides the essential interface, It will be other middleware's decision on when and how often they want to roll the session id.
 
 
 ## Session store *(copied from `koa-generic-session`)*
