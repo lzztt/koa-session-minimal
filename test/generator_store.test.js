@@ -35,19 +35,43 @@ const updateSession = (ctx, next) => {
 
 const sessionToBody = ctx => {
   ctx.body = {
-    sid: ctx.sessionHandler.getId(),
     data: ctx.session,
   }
 }
 
+const getCookies = res => {
+  const cookies = res.header['set-cookie']
+  if (cookies) {
+    return cookies.map(c => {
+      const match = c.match(/([^=]*)=([^;]*); path=([^;]*); /)
+      if (match) {
+        return {
+          name: match[1],
+          value: match[2],
+          path: match[3],
+        }
+      }
+      return null
+    })
+  }
+
+  return null
+}
+
+const populateSid = res => {
+  const cookies = getCookies(res)
+  res.body.sid = cookies ? cookies[0].value : null
+}
+
 const validateCookie = (res, key) => {
-  const cookie = res.header['set-cookie']
-  expect(cookie.length).to.be.equal(1)
-  expect(cookie[0].slice(0, key.length + res.body.sid.length + 3))
-    .to.be.equal(`${key}=${res.body.sid}; `)
+  const cookies = getCookies(res)
+  expect(cookies.length).to.be.equal(1)
+  expect(cookies[0].name).to.be.equal(key)
+  expect(cookies[0].path).to.be.equal('/')
 }
 
 const validateBody = (res, startTime) => {
+  populateSid(res)
   expect(res.body.data.time).to.be.at.least(startTime)
   expect(res.body.data.time).to.be.at.most(Date.now())
 }
@@ -95,7 +119,7 @@ describe('session with generator store', () => {
     done()
   })
 
-  it('should work and set session cookie', (done) => {
+  it('set session cookie when session has data', done => {
     client.get('/set/time').expect(200).end((err, res) => {
       if (err) done(err)
       validateCookie(res, key)
@@ -163,7 +187,7 @@ describe('session with generator store', () => {
         if (err2) done(err2)
         validateCookie(res2, key)
         validateBody(res2, startTime)
-        expect(res2.body.sid).to.be.not.equal(body1.id)
+        expect(res2.body.sid).to.be.not.equal(body1.sid)
         expect(res2.body.data.time).to.be.at.least(body1.data.time)
         validateStoreCalls(store, {
           get: [],
@@ -177,7 +201,7 @@ describe('session with generator store', () => {
           .expect(200).end((err3, res3) => {
             if (err3) done(err3)
             expect(res3.header['set-cookie']).to.be.equal(undefined)
-            expect(res3.body).to.be.deep.equal(body1)
+            expect(res3.body.data).to.be.deep.equal(body1.data)
             validateStoreCalls(store, {
               get: [
                 [`${key}:${body1.sid}`],
@@ -229,8 +253,9 @@ describe('session with generator store', () => {
       client.get('/set/empty').set('cookie', `${key}=${body1.sid}`)
         .expect(200).end((err2, res2) => {
           if (err2) done(err2)
+          populateSid(res2)
           expect(res2.body).to.be.deep.equal({
-            sid: body1.sid,
+            sid: '',
             data: {},
           })
           res2.body.sid = ''
@@ -249,8 +274,9 @@ describe('session with generator store', () => {
             .expect(200).end((err3, res3) => {
               if (err3) done(err3)
               expect(res3.header['set-cookie']).to.be.equal(undefined)
+              populateSid(res3)
               expect(res3.body).to.be.deep.equal({
-                sid: body1.sid,
+                sid: null,
                 data: {},
               })
               validateStoreCalls(store, {
@@ -283,8 +309,9 @@ describe('session with generator store', () => {
       client.get('/set/null').set('cookie', `${key}=${body1.sid}`)
         .expect(200).end((err2, res2) => {
           if (err2) done(err2)
+          populateSid(res2)
           expect(res2.body).to.be.deep.equal({
-            sid: body1.sid,
+            sid: '',
             data: null,
           })
           res2.body.sid = ''
@@ -303,8 +330,9 @@ describe('session with generator store', () => {
             .expect(200).end((err3, res3) => {
               if (err3) done(err3)
               expect(res3.header['set-cookie']).to.be.equal(undefined)
+              populateSid(res3)
               expect(res3.body).to.be.deep.equal({
-                sid: body1.sid,
+                sid: null,
                 data: {},
               })
               validateStoreCalls(store, {
@@ -359,8 +387,8 @@ describe('session with generator store', () => {
               if (err3) done(err3)
               expect(res3.header['set-cookie']).to.be.equal(undefined)
               validateBody(res3, startTime)
-              expect(res3.body.sid).to.be.equal(body2.sid)
-              expect(res3.body.data.time).to.be.equal(body2.data.time)
+              expect(res3.body.sid).to.be.equal(null)
+              expect(res3.body.data).to.be.deep.equal(body2.data)
               validateStoreCalls(store, {
                 get: [
                   [`${key}:${res2.body.sid}`],
@@ -460,7 +488,7 @@ describe('generator store with customized cookie options', () => {
         .expect(200).end((err2, res2) => {
           if (err2) done(err2)
           expect(res2.header['set-cookie']).to.be.equal(undefined)
-          expect(res2.body).to.be.deep.equal(body1)
+          expect(res2.body.data).to.be.deep.equal(body1.data)
           validateStoreCalls(store, {
             get: [
               [`${key}:${body1.sid}`],
