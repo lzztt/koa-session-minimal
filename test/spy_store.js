@@ -1,5 +1,3 @@
-'use strict'
-
 /* prefer-rest-params */
 class AsyncSpyStore {
   constructor() {

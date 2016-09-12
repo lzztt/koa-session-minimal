@@ -1,5 +1,3 @@
-'use strict'
-
 const uid = require('uid-safe')
 const deepEqual = require('deep-equal')
 const Store = require('./store')
