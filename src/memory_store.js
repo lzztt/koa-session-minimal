@@ -1,5 +1,3 @@
-'use strict'
-
 module.exports = class MemoryStore {
   constructor() {
     this.sessions = {}

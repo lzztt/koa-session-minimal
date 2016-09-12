@@ -18,7 +18,6 @@
       "error", {
         "props": false
       }
-    ],
-    "strict": "off"
+    ]
   }
 }
