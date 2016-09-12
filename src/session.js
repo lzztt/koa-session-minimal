@@ -59,7 +59,6 @@ module.exports = options => {
 
     // expose session handler to ctx
     ctx.sessionHandler = {
-      getId: () => sid,
       regenerateId: () => {
         sid = uid.sync(24)
       },
