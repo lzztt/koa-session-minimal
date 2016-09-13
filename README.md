@@ -21,14 +21,14 @@ $ npm install koa-session-minimal
 ## Minimum features and storage usage
 
 This middleware guarantees the following:
-- A session only contains data populated via `ctx.session` object by other middlewares. It is an empty object by default.
-  - No cookie and storage record will be generated unless session data gets populated
-  - It will not store cookie info in session store (try to resolve [this concern](https://github.com/koajs/generic-session/issues/72)).
-- Only store non-empty session. Only set/update the SID cookie and flush backend storage when session data has been changed.
-  - When `ctx.session` gets updated (becomes a non-empty object), cookie and storage will be updated with the new data and new expiration time (`maxAge`, `ttl`).
-  - When `ctx.session` gets cleared ( `= {}` or `null` ), cookie and storage data will get deleted.
+- Minimum data generation and storage. No session data modification / pollution.
+  - Neither a cookie nor a session store record is created unless session data gets populated by other middlewares.
+  - Cookie options are not saved in the `ctx.session` object or session store (try to address [this concern](https://github.com/koajs/generic-session/issues/72)).
+- Minimum updates on cookie and session store. Cookie and session store only get updated when session data has been changed.
+  - When `ctx.session` gets updated (is a non-empty object), cookie and store data will be updated with new values and new expiration time (`maxAge`).
+  - When `ctx.session` gets cleared ( `= {}` or `null` ), cookie and store data will be deleted.
   - If a session has not been updated within `maxAge`, its data will be expired.
-- Only expose minimum public interfaces and configuration options
+- Minimum public interfaces and configuration options.
   - Cookie options: `maxAge`, `path`, `domain`, `secure`, `httpOnly`
   - Session interfaces: `session`, `sessionHandler { regenerateId(), setMaxAge() }`
   - Store interfaces: `get()`, `set()`, `destroy()`
@@ -66,7 +66,7 @@ app.listen(3000)
 - session data via `ctx.session` (the same way as `koa-generic-session`)
 - session methods via `ctx.sessionHandler`
   - `regenerateId()`: regenerate session id
-  - `setMaxAge(ms)`: update session's `maxAge`, only take effect when session data has been changed
+  - `setMaxAge(ms)`: update session's `maxAge` to `ms` milliseconds, only take effect when session data has been changed
 
 
 ## Options
@@ -78,13 +78,13 @@ app.listen(3000)
 
 ## Session expiration
 
-Default session has settings `cookie.maxAge = 0` and `ttl = ONE_DAY`, means that this session will be expired in one of the following circumstances:
-- A user close the browser window (transient cookie expires)
+Default session has settings `cookie.maxAge = 0` for cookie and `ttl = ONE_DAY` for session store, means that a session will be expired in one of the following circumstances:
+- A user close the browser window (transient cookie ends)
 - Session data hasn't been updated within `ONE_DAY` (storage expires)
 
-With settings that `cookie.maxAge > 0`, `ttl` will be always the same as `maxAge`.
+With settings that `cookie.maxAge > 0`, the `ttl` for store data will be always the same as `maxAge`.
 
-When session data gets updated, middlewares can update the `maxAge` by calling `sessionHandler.setMaxAge()`. Then the session's expiration time will be extended with the new `maxAge` value.
+When a middleware updates session data, it can also update the `maxAge` by calling `sessionHandler.setMaxAge(ms)`. Then the session's expiration time will be updated to `now() + maxAge` milliseconds.
 
 
 ## Session security
