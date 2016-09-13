@@ -1,4 +1,4 @@
-/* prefer-rest-params */
+/* eslint "prefer-rest-params": "off", "require-yield": "off" */
 class AsyncSpyStore {
   constructor() {
     this.clear()
