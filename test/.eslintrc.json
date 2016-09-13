@@ -23,8 +23,6 @@
       "error", {
         "devDependencies": true
       }
-    ],
-    "prefer-rest-params": "off",
-    "require-yield": "off"
+    ]
   }
 }
