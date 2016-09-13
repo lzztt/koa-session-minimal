@@ -5,16 +5,16 @@ const MemoryStore = require('./memory_store')
 
 const ONE_DAY = 24 * 3600 * 1000 // one day in milliseconds
 
-const deleteSession = (ctx, key, ckOption, store, sid) => {
-  const deleteOption = Object.assign({}, ckOption)
+const deleteSession = (ctx, key, cookie, store, sid) => {
+  const deleteOption = Object.assign({}, cookie)
   delete deleteOption.maxAge
   ctx.cookies.set(key, null, deleteOption)
   store.destroy(`${key}:${sid}`)
 }
 
-const saveSession = (ctx, key, ckOption, store, sid) => {
-  const ttl = ckOption.maxAge > 0 ? ckOption.maxAge : ONE_DAY
-  ctx.cookies.set(key, sid, ckOption)
+const saveSession = (ctx, key, cookie, store, sid) => {
+  const ttl = cookie.maxAge > 0 ? cookie.maxAge : ONE_DAY
+  ctx.cookies.set(key, sid, cookie)
   store.set(`${key}:${sid}`, ctx.session, ttl)
 }
 
@@ -22,22 +22,19 @@ module.exports = options => {
   const opt = options || {}
   const key = opt.key || 'koa:sess'
   const store = new Store(opt.store || new MemoryStore())
-  const cookie = opt.cookie || {}
+  const defaultCookie = Object.assign({
+    maxAge: 0, // default to use session cookie
+    path: '/',
+    secure: false,
+    httpOnly: true,
+  }, opt.cookie || {}, {
+    overwrite: true, // overwrite previous session cookie changes
+    signed: false, // disable signed option
+  })
+  if (!(defaultCookie.maxAge >= 0)) defaultCookie.maxAge = 0
 
   return async (ctx, next) => {
-    // setup cookie options
-    const ckOption = {
-      maxAge: 0, // default to use session cookie
-      path: '/',
-      secure: false,
-      httpOnly: true,
-    }
-    Object.assign(ckOption, cookie)
-    Object.assign(ckOption, {
-      overwrite: true, // overwrite previous session cookie changes
-      signed: false, // disable signed option
-    })
-    if (!(ckOption.maxAge >= 0)) ckOption.maxAge = 0
+    const cookie = Object.assign({}, defaultCookie)
 
     // initialize session id and data
     const cookieSid = ctx.cookies.get(key)
@@ -61,7 +58,7 @@ module.exports = options => {
         sid = uid.sync(24)
       },
       setMaxAge: ms => {
-        ckOption.maxAge = ms >= 0 ? ms : 0
+        cookie.maxAge = ms >= 0 ? ms : 0
       },
     }
 
@@ -71,19 +68,19 @@ module.exports = options => {
 
     if (sid !== cookieSid) { // a new session id
       // clean old session
-      if (cookieSid) deleteSession(ctx, key, ckOption, store, cookieSid)
+      if (cookieSid) deleteSession(ctx, key, cookie, store, cookieSid)
 
       // save new session
-      if (sessionHasData) saveSession(ctx, key, ckOption, store, sid)
+      if (sessionHasData) saveSession(ctx, key, cookie, store, sid)
     } else { // an existing session
       // data has not been changed
       if (deepEqual(ctx.session, sessionClone)) return
 
       // update session data
       if (sessionHasData) {
-        saveSession(ctx, key, ckOption, store, sid)
+        saveSession(ctx, key, cookie, store, sid)
       } else {
-        deleteSession(ctx, key, ckOption, store, sid)
+        deleteSession(ctx, key, cookie, store, sid)
       }
     }
   }
