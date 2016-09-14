@@ -5,6 +5,20 @@ const MemoryStore = require('./memory_store')
 
 const ONE_DAY = 24 * 3600 * 1000 // one day in milliseconds
 
+const cookieOpt = cookie => {
+  const options = Object.assign({
+    maxAge: 0, // default to use session cookie
+    path: '/',
+    secure: false,
+    httpOnly: true,
+  }, cookie || {}, {
+    overwrite: true, // overwrite previous session cookie changes
+    signed: false, // disable signed option
+  })
+  if (!(options.maxAge >= 0)) options.maxAge = 0
+  return options
+}
+
 const deleteSession = (ctx, key, cookie, store, sid) => {
   const deleteOption = Object.assign({}, cookie)
   delete deleteOption.maxAge
@@ -22,20 +36,9 @@ module.exports = options => {
   const opt = options || {}
   const key = opt.key || 'koa:sess'
   const store = new Store(opt.store || new MemoryStore())
-  const defaultCookie = Object.assign({
-    maxAge: 0, // default to use session cookie
-    path: '/',
-    secure: false,
-    httpOnly: true,
-  }, opt.cookie || {}, {
-    overwrite: true, // overwrite previous session cookie changes
-    signed: false, // disable signed option
-  })
-  if (!(defaultCookie.maxAge >= 0)) defaultCookie.maxAge = 0
+  const defaultCookie = opt.cookie instanceof Function ? opt.cookie : cookieOpt(opt.cookie)
 
   return async (ctx, next) => {
-    const cookie = Object.assign({}, defaultCookie)
-
     // initialize session id and data
     const cookieSid = ctx.cookies.get(key)
 
@@ -57,13 +60,11 @@ module.exports = options => {
       regenerateId: () => {
         sid = uid.sync(24)
       },
-      setMaxAge: ms => {
-        cookie.maxAge = ms >= 0 ? ms : 0
-      },
     }
 
     await next()
 
+    const cookie = defaultCookie instanceof Function ? cookieOpt(defaultCookie(ctx)) : defaultCookie
     const sessionHasData = ctx.session && Object.keys(ctx.session).length
 
     if (sid !== cookieSid) { // a new session id
