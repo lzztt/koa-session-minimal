@@ -23,8 +23,7 @@ const updateSession = (ctx, next) => {
       break
     default:
       if (ctx.url.startsWith('/maxage/')) {
-        const ms = parseInt(ctx.url.replace('/maxage/', ''), 10)
-        ctx.sessionHandler.setMaxAge(ms)
+        ctx.ms = parseInt(ctx.url.replace('/maxage/', ''), 10)
         ctx.session.time = Date.now()
       }
   }
@@ -399,6 +398,33 @@ describe('session with generator store', () => {
         })
     })
   })
+})
+
+describe('generator store with dynamic cookie options', () => {
+  const app = new Koa()
+  const key = 'koa:sess'
+  const store = new SpyStore()
+
+  app.use(session({
+    store,
+    cookie: ctx => { // eslint-disable-line arrow-body-style
+      return {
+        maxAge: ctx.ms,
+      }
+    },
+  }))
+  app.use(updateSession)
+  app.use(sessionToBody)
+
+  const client = request(app.listen())
+  let startTime
+  let ttl
+
+  beforeEach(() => {
+    store.clear()
+    ttl = 24 * 3600 * 1000 // one day in milliseconds
+    startTime = Date.now()
+  })
 
   it('setMaxAge(ms) should set maxAge and ttl', done => {
     client.get('/maxage/0').expect(200).end((err1, res1) => {
@@ -413,7 +439,7 @@ describe('session with generator store', () => {
         destroy: [],
       })
 
-      const maxAge = 1000
+      const maxAge = 123
       client.get(`/maxage/${maxAge}`).expect(200).end((err2, res2) => {
         if (err2) done(err2)
         validateCookie(res2, key)

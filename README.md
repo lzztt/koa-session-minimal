@@ -30,7 +30,7 @@ This middleware guarantees the following:
   - If a session has not been updated within `maxAge`, its data will be expired.
 - Minimum public interfaces and configuration options.
   - Cookie options: `maxAge`, `path`, `domain`, `secure`, `httpOnly`
-  - Session interfaces: `session`, `sessionHandler { regenerateId(), setMaxAge() }`
+  - Session interfaces: `session`, `sessionHandler { regenerateId() }`
   - Store interfaces: `get()`, `set()`, `destroy()`
 
 
@@ -66,14 +66,13 @@ app.listen(3000)
 - session data via `ctx.session` (the same way as `koa-generic-session`)
 - session methods via `ctx.sessionHandler`
   - `regenerateId()`: regenerate session id
-  - `setMaxAge(ms)`: update session's `maxAge` to `ms` milliseconds, only take effect when session data has been changed
 
 
 ## Options
 
 - `key`: session cookie name and store key prefix
 - `store`: session store
-- `cookie`: cookie options, only supports `maxAge`, `path`, `domain`, `secure`, `httpOnly` (see option details in [`cookies`](https://github.com/pillarjs/cookies) module)
+- `cookie`: cookie options, can be an object (static cookie options) or a function that returns an object (dynamic cookie options). Only `maxAge`, `path`, `domain`, `secure`, `httpOnly` are supported as option keys (see option details in [`cookies`](https://github.com/pillarjs/cookies) module).
 
 
 ## Session expiration
@@ -84,7 +83,17 @@ Default session has settings `cookie.maxAge = 0` for cookie and `ttl = ONE_DAY` 
 
 With settings that `cookie.maxAge > 0`, the `ttl` for store data will be always the same as `maxAge`.
 
-When a middleware updates session data, it can also update the `maxAge` by calling `sessionHandler.setMaxAge(ms)`. Then the session's expiration time will be updated to `now() + maxAge` milliseconds.
+When setting `cookie` option to a plain object, all sessions will use the same cookie options. If a function is assigned to `cookie`, cookie options will be dynamically calculated at each (non-empty) session's saving stage.
+You may use different `maxAge` for user and guest sessions, by initializing the session middleware as below:
+```javascript
+session({
+  cookie: ctx => {
+    return {
+      maxAge: ctx.session.user ? ONE_MONTH : ONE_DAY,
+    }
+  }
+})
+```
 
 
 ## Session security
