@@ -30,16 +30,16 @@ const updateSession = (ctx, next) => {
   next()
 }
 
-const sessionToBody = ctx => {
+const sessionToBody = (ctx) => {
   ctx.body = {
     data: ctx.session,
   }
 }
 
-const getCookies = res => {
+const getCookies = (res) => {
   const cookies = res.header['set-cookie']
   if (cookies) {
-    return cookies.map(c => {
+    return cookies.map((c) => {
       const match = c.match(/([^=]*)=([^;]*); path=([^;]*); /)
       if (match) {
         return {
@@ -55,7 +55,7 @@ const getCookies = res => {
   return null
 }
 
-const populateSid = res => {
+const populateSid = (res) => {
   const cookies = getCookies(res)
   res.body.sid = cookies ? cookies[0].value : null
 }
@@ -74,7 +74,7 @@ const validateBody = (res, startTime) => {
 }
 
 const validateStoreCalls = (store, calls) => {
-  ['get', 'set', 'destroy'].forEach(m => {
+  ['get', 'set', 'destroy'].forEach((m) => {
     expect(store.calls[m]).to.be.deep.equal(calls[m])
   })
   store.clearCalls()
@@ -102,7 +102,7 @@ describe('session with generator store', () => {
     startTime = Date.now()
   })
 
-  it('should work and not set cookie for empty session', done => {
+  it('should work and not set cookie for empty session', (done) => {
     client.get('/').expect(200).end((err, res) => {
       if (err) done(err)
       validateBody(res, startTime)
@@ -116,7 +116,7 @@ describe('session with generator store', () => {
     done()
   })
 
-  it('set session cookie when session has data', done => {
+  it('set session cookie when session has data', (done) => {
     client.get('/set/time').expect(200).end((err, res) => {
       if (err) done(err)
       validateCookie(res, key)
@@ -132,7 +132,7 @@ describe('session with generator store', () => {
     })
   })
 
-  it('should work when multiple clients access', done => {
+  it('should work when multiple clients access', (done) => {
     Promise.all([
       new Promise((resolve, reject) => {
         client.get('/set/time').expect(200).end((err, res) => {
@@ -150,7 +150,7 @@ describe('session with generator store', () => {
           resolve(res.body)
         })
       }),
-    ]).then(bodies => {
+    ]).then((bodies) => {
       expect(bodies[0].sid).to.be.not.equal(bodies[1].sid)
       validateStoreCalls(store, {
         get: [],
@@ -166,7 +166,7 @@ describe('session with generator store', () => {
     })
   })
 
-  it('session data is available among multiple requests', done => {
+  it('session data is available among multiple requests', (done) => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
@@ -233,7 +233,7 @@ describe('session with generator store', () => {
     })
   })
 
-  it('set ctx.session = {} should clear session data', done => {
+  it('set ctx.session = {} should clear session data', (done) => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
@@ -289,7 +289,7 @@ describe('session with generator store', () => {
     })
   })
 
-  it('set ctx.session = null should clear session data', done => {
+  it('set ctx.session = null should clear session data', (done) => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
@@ -345,7 +345,7 @@ describe('session with generator store', () => {
     })
   })
 
-  it('regenerateId() should regenerate session id', done => {
+  it('regenerateId() should regenerate session id', (done) => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
@@ -407,7 +407,7 @@ describe('generator store with dynamic cookie options', () => {
 
   app.use(session({
     store,
-    cookie: ctx => { // eslint-disable-line arrow-body-style
+    cookie: (ctx) => { // eslint-disable-line arrow-body-style
       return {
         maxAge: ctx.ms,
       }
@@ -426,7 +426,7 @@ describe('generator store with dynamic cookie options', () => {
     startTime = Date.now()
   })
 
-  it('setMaxAge(ms) should set maxAge and ttl', done => {
+  it('setMaxAge(ms) should set maxAge and ttl', (done) => {
     client.get('/maxage/0').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
@@ -494,7 +494,7 @@ describe('generator store with customized cookie options', () => {
     startTime = Date.now()
   })
 
-  it('negative maxAge value will be treated as 0 (default value)', done => {
+  it('negative maxAge value will be treated as 0 (default value)', (done) => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
