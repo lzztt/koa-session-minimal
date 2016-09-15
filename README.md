@@ -44,7 +44,7 @@ const redisStore = require('koa-redis')
 const app = new Koa()
 
 app.use(session({
-  store: redisStore(),
+  store: redisStore()
 }))
 
 // count middleware, increment when url = /add
@@ -87,9 +87,9 @@ When setting `cookie` option to a plain object, all sessions will use the same c
 You may use different `maxAge` for user and guest sessions, by initializing the session middleware as below:
 ```javascript
 session({
-  cookie: ctx => {
+  cookie: (ctx) => {
     return {
-      maxAge: ctx.session.user ? ONE_MONTH : ONE_DAY,
+      maxAge: ctx.session.user ? ONE_MONTH : 0
     }
   }
 })

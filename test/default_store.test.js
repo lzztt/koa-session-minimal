@@ -25,16 +25,16 @@ const updateSession = (ctx, next) => {
   next()
 }
 
-const sessionToBody = ctx => {
+const sessionToBody = (ctx) => {
   ctx.body = {
     data: ctx.session,
   }
 }
 
-const getCookies = res => {
+const getCookies = (res) => {
   const cookies = res.header['set-cookie']
   if (cookies) {
-    return cookies.map(c => {
+    return cookies.map((c) => {
       const match = c.match(/([^=]*)=([^;]*); path=([^;]*); /)
       if (match) {
         return {
@@ -50,7 +50,7 @@ const getCookies = res => {
   return null
 }
 
-const populateSid = res => {
+const populateSid = (res) => {
   const cookies = getCookies(res)
   res.body.sid = cookies ? cookies[0].value : null
 }
@@ -84,7 +84,7 @@ describe('session with default memory store', () => {
     startTime = Date.now()
   })
 
-  it('should work and not set cookie for empty session', done => {
+  it('should work and not set cookie for empty session', (done) => {
     client.get('/').expect(200).end((err, res) => {
       if (err) done(err)
       validateBody(res, startTime)
@@ -93,7 +93,7 @@ describe('session with default memory store', () => {
     done()
   })
 
-  it('set session cookie when session has data', done => {
+  it('set session cookie when session has data', (done) => {
     client.get('/set/time').expect(200).end((err, res) => {
       if (err) done(err)
       validateCookie(res, key)
@@ -102,7 +102,7 @@ describe('session with default memory store', () => {
     })
   })
 
-  it('should work when multiple clients access', done => {
+  it('should work when multiple clients access', (done) => {
     Promise.all([
       new Promise((resolve, reject) => {
         client.get('/set/time').expect(200).end((err, res) => {
@@ -120,7 +120,7 @@ describe('session with default memory store', () => {
           resolve(res.body)
         })
       }),
-    ]).then(bodies => {
+    ]).then((bodies) => {
       expect(bodies[0].sid).to.be.not.equal(bodies[1].sid)
       done()
     }).catch((err) => {
@@ -128,7 +128,7 @@ describe('session with default memory store', () => {
     })
   })
 
-  it('session data is available among multiple requests', done => {
+  it('session data is available among multiple requests', (done) => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
@@ -165,7 +165,7 @@ describe('session with default memory store', () => {
     })
   })
 
-  it('set ctx.session = {} should clear session data', done => {
+  it('set ctx.session = {} should clear session data', (done) => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
@@ -198,7 +198,7 @@ describe('session with default memory store', () => {
     })
   })
 
-  it('set ctx.session = null should clear session data', done => {
+  it('set ctx.session = null should clear session data', (done) => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
@@ -231,7 +231,7 @@ describe('session with default memory store', () => {
     })
   })
 
-  it('regenerateId() should regenerate session id', done => {
+  it('regenerateId() should regenerate session id', (done) => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
@@ -280,7 +280,7 @@ describe('default memory store with customized cookie options', () => {
     startTime = Date.now()
   })
 
-  it('negative maxAge value will be treated as 0 (default value)', done => {
+  it('negative maxAge value will be treated as 0 (default value)', (done) => {
     client.get('/set/time').expect(200).end((err1, res1) => {
       if (err1) done(err1)
       validateCookie(res1, key)
