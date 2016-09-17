@@ -20,15 +20,16 @@ const cookieOpt = (cookie) => {
 }
 
 const deleteSession = (ctx, key, cookie, store, sid) => {
-  const deleteOption = Object.assign({}, cookie)
-  delete deleteOption.maxAge
-  ctx.cookies.set(key, null, deleteOption)
+  const options = cookie instanceof Function ? cookieOpt(cookie(ctx)) : Object.assign({}, cookie)
+  delete options.maxAge
+  ctx.cookies.set(key, null, options)
   store.destroy(`${key}:${sid}`)
 }
 
 const saveSession = (ctx, key, cookie, store, sid) => {
-  const ttl = cookie.maxAge > 0 ? cookie.maxAge : ONE_DAY
-  ctx.cookies.set(key, sid, cookie)
+  const options = cookie instanceof Function ? cookieOpt(cookie(ctx)) : cookie
+  const ttl = options.maxAge > 0 ? options.maxAge : ONE_DAY
+  ctx.cookies.set(key, sid, options)
   store.set(`${key}:${sid}`, ctx.session, ttl)
 }
 
@@ -36,7 +37,7 @@ module.exports = (options) => {
   const opt = options || {}
   const key = opt.key || 'koa:sess'
   const store = new Store(opt.store || new MemoryStore())
-  const defaultCookie = opt.cookie instanceof Function ? opt.cookie : cookieOpt(opt.cookie)
+  const cookie = opt.cookie instanceof Function ? opt.cookie : cookieOpt(opt.cookie)
 
   return async (ctx, next) => { // eslint-disable-line arrow-parens
     // initialize session id and data
@@ -64,7 +65,6 @@ module.exports = (options) => {
 
     await next()
 
-    const cookie = defaultCookie instanceof Function ? cookieOpt(defaultCookie(ctx)) : defaultCookie
     const sessionHasData = ctx.session && Object.keys(ctx.session).length
 
     if (sid !== cookieSid) { // a new session id
