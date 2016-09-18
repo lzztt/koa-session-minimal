@@ -12,11 +12,19 @@ module.exports = class MemoryStore {
     this.sessions[sid] = val
 
     if (sid in this.timeouts) clearTimeout(this.timeouts[sid])
-    this.timeouts[sid] = setTimeout(this.destroy.bind(this, sid), ttl)
+
+    this.timeouts[sid] = setTimeout(() => {
+      delete this.sessions[sid]
+      delete this.timeouts[sid]
+    }, ttl)
   }
 
   destroy(sid) {
-    delete this.sessions[sid]
-    delete this.timeouts[sid]
+    if (sid in this.timeouts) {
+      delete this.sessions[sid]
+
+      clearTimeout(this.timeouts[sid])
+      delete this.timeouts[sid]
+    }
   }
 }

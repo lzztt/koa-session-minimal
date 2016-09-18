@@ -17,7 +17,6 @@ test-cov:
 		./node_modules/.bin/_mocha --require build/helper.js --bail \
 		build/test
 
-
 test-travis:
 	rm -rf build coverage && \
 		babel --plugins='external-helpers' src -d build -s && \
