@@ -31,7 +31,7 @@ dist: src/*.js test/*.js
 	rm -rf dist && \
 		babel src -d dist --no-comments && \
 		babel test -d dist/test && \
-		sed -i -e 's@../src/session@../..@' -e "s@describe('@describe('dist:@" dist/test/*.test.js && \
+		sed -i -e 's@../src/session@../..@' -e 's@../src/@../@' -e "s@describe('@describe('dist:@" dist/test/*.test.js && \
 		mocha dist/test && \
 		rm -rf dist/test
 
