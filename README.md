@@ -6,7 +6,7 @@
 [![codecov][codecov-image]][codecov-url]
 
 
-Minimal implementation of session middleware for Koa 2. Inspired by and compatible with [koa-generic-session](https://github.com/koajs/generic-session). It is a re-write of `koa-generic-session` with its essential functionalities, with around 100 lines of code in ES6.
+Minimal implementation of session middleware for Koa 2. Inspired by and compatible with [koa-generic-session](https://github.com/koajs/generic-session). This is a re-write of `koa-generic-session` with its essential functionalities, with around 100 lines of code in ES6.
 
 This is a native Koa 2 middleware. It supports existing session stores (via the `co` wrapper) for `koa-generic-session`. It can be used as a drop-in replacement for `koa-generic-session` in Koa 2.
 
@@ -100,8 +100,9 @@ session({
 
 Middlewares are recommended to call `sessionHandler.regenerateId()` during authentication state change (login). This middleware provides the essential interface, It will be other middleware's decision on when and how often they want to roll the session id.
 
+> NOTE: Below is mostly copied from `koa-generic-session`'s README, because the two middlewares share the same store interfaces. Any store that implements `koa-generic-session`'s store interfaces should also work with `koa-session-minimal`. `koa-redis` is tested as an example in `test/store_redis.test.js`
 
-## Session store *(copied from `koa-generic-session`)*
+## Session store
 
 You can use any other store to replace the default MemoryStore, it just needs to follow this api:
 
@@ -112,7 +113,7 @@ You can use any other store to replace the default MemoryStore, it just needs to
 the api needs to return a Promise, Thunk, generator, or an async function.
 
 
-## Stores presented *(copied from `koa-generic-session`, tested with `koa-redis`)*
+## Stores presented
 
 - [koa-redis](https://github.com/koajs/koa-redis) to store your session data with redis.
 - [koa-mysql-session](https://github.com/tb01923/koa-mysql-session) to store your session data with MySQL.
