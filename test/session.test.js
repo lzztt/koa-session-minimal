@@ -402,11 +402,9 @@ describe('cookie options', () => {
   })
 
   const clientDynamic = getClient({
-    cookie: (ctx) => { // eslint-disable-line arrow-body-style
-      return {
-        maxAge: ctx.maxAge,
-      }
-    },
+    cookie: ctx => ({
+      maxAge: ctx.maxAge,
+    }),
   })
 
   it('can set cookie options via a function', (done) => {
