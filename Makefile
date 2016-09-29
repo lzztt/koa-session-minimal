@@ -2,7 +2,7 @@
 .PHONY: lint test test-cov test-travis clean
 
 lint:
-	eslint src test
+	eslint src test example
 
 test:
 	mocha --compilers js:babel-register --bail test

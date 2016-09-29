@@ -8,12 +8,10 @@ const ONE_MONTH = 30 * 24 * 3600 * 1000
 
 app.use(session({
   store: new RedisStore(),
-  cookie: (ctx) => {
-    return {
-      maxAge: ctx.session.user ? ONE_MONTH : 0,
-      httpOnly: false,
-    }
-  },
+  cookie: ctx => ({
+    maxAge: ctx.session.user ? ONE_MONTH : 0,
+    httpOnly: false,
+  }),
 }))
 
 const counter = (ctx) => {
