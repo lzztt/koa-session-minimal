@@ -11,13 +11,6 @@ Minimal implementation of session middleware for Koa 2. Inspired by and compatib
 This is a native Koa 2 middleware. It supports existing session stores (via the `co` wrapper) for `koa-generic-session`. It can be used as a drop-in replacement for `koa-generic-session` in Koa 2.
 
 
-## Installation
-
-```shell
-$ npm install koa-session-minimal
-```
-
-
 ## Minimum features and storage usage
 
 This middleware guarantees the following:
@@ -32,6 +25,13 @@ This middleware guarantees the following:
   - Cookie options: `maxAge`, `path`, `domain`, `secure`, `httpOnly`
   - Session interfaces: `session`, `sessionHandler { regenerateId() }`
   - Store interfaces: `get()`, `set()`, `destroy()`
+
+
+## Installation
+
+```shell
+$ npm install koa-session-minimal
+```
 
 
 ## Usage
