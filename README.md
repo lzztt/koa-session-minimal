@@ -6,9 +6,9 @@
 [![codecov][codecov-image]][codecov-url]
 
 
-Minimal implementation of session middleware for Koa 2. Inspired by and compatible with [koa-generic-session](https://github.com/koajs/generic-session). This is a re-write of `koa-generic-session` with its essential functionalities, with around 100 lines of code in ES6.
+Native Koa 2 session middleware, inspired by and compatible with [koa-generic-session](https://github.com/koajs/generic-session). This can be used as a drop-in replacement for `koa-generic-session` in Koa 2.
 
-This is a native Koa 2 middleware. It supports existing session stores (via the `co` wrapper) for `koa-generic-session`. It can be used as a drop-in replacement for `koa-generic-session` in Koa 2.
+This rewrite implements `koa-generic-session`'s essential interfaces, with around 100 lines of code in ES6. It supports existing session stores for `koa-generic-session`.
 
 
 ## Minimum features and storage usage
