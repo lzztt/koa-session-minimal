@@ -1,7 +1,7 @@
 module.exports = class MemoryStore {
   constructor() {
-    this.sessions = {}
-    this.timeouts = {}
+    this.sessions = {} // data
+    this.timeouts = {} // expiration handler
   }
 
   get(sid) {
@@ -12,7 +12,6 @@ module.exports = class MemoryStore {
     this.sessions[sid] = val
 
     if (sid in this.timeouts) clearTimeout(this.timeouts[sid])
-
     this.timeouts[sid] = setTimeout(() => {
       delete this.sessions[sid]
       delete this.timeouts[sid]
