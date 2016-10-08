@@ -65,24 +65,21 @@ module.exports = (options) => {
 
     await next()
 
-    const sessionHasData = ctx.session && Object.keys(ctx.session).length
+    const sessionHasData = ctx.session && Object.keys(ctx.session).length > 0
 
     if (sid !== cookieSid) { // a new session id
-      // clean old session
+      // delete old session
       if (cookieSid) deleteSession(ctx, key, cookie, store, cookieSid)
 
       // save new session
       if (sessionHasData) saveSession(ctx, key, cookie, store, sid)
     } else { // an existing session
-      // data has not been changed
+      // session data has not been changed
       if (deepEqual(ctx.session, sessionClone)) return
 
-      // update session data
-      if (sessionHasData) {
-        saveSession(ctx, key, cookie, store, sid)
-      } else {
-        deleteSession(ctx, key, cookie, store, sid)
-      }
+      // update / delete session
+      const doSession = sessionHasData ? saveSession : deleteSession
+      doSession(ctx, key, cookie, store, sid)
     }
   }
 }
