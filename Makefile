@@ -5,7 +5,7 @@ lint:
 	eslint src test example
 
 test:
-	mocha --compilers js:babel-register --bail test
+	mocha --compilers js:babel-register --timeout 3000 --bail test
 
 test-cov:
 	rm -rf build coverage && \
@@ -15,7 +15,7 @@ test-cov:
 		sed -i -e 's@../src@..@' -e "s@describe('@describe('cov: @" \
 			-e 's@describe(`@describe(`cov: @' build/test/*.test.js && \
 		istanbul cover -x build/helper.js -- \
-		./node_modules/.bin/_mocha --require build/helper.js --bail \
+		./node_modules/.bin/_mocha --require build/helper.js --timeout 3000 --bail \
 		build/test
 
 test-travis:
@@ -26,7 +26,7 @@ test-travis:
 		sed -i -e 's@../src@..@' -e "s@describe('@describe('cov: @" \
 			-e 's@describe(`@describe(`cov: @' build/test/*.test.js && \
 		istanbul cover -x build/helper.js --report lcovonly -- \
-		./node_modules/.bin/_mocha --require build/helper.js --bail \
+		./node_modules/.bin/_mocha --require build/helper.js --timeout 3000 --bail \
 		build/test
 
 dist: src/*.js test/*.js
@@ -36,7 +36,7 @@ dist: src/*.js test/*.js
 		sed -i -e 's@../src/session@../..@' -e 's@../src/@../@' \
 			-e "s@describe('@describe('dist: @" -e 's@describe(`@describe(`dist: @' \
 			dist/test/*.test.js && \
-		mocha dist/test && \
+		mocha --timeout 3000 --bail dist/test && \
 		rm -rf dist/test
 
 clean:
