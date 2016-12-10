@@ -43,6 +43,7 @@
     "eslint-plugin-import": "^1.16.0",
     "istanbul": "^0.4.5",
     "koa": "^2.0.0-alpha.7",
+    "koa-generic-session-mongo": "^0.3.0",
     "koa-redis": "^2.1.2",
     "mocha": "^3.0.2",
     "supertest": "^2.0.0"
