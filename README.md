@@ -83,6 +83,9 @@ Default session has settings `cookie.maxAge = 0` for cookie and `ttl = ONE_DAY` 
 
 With settings that `cookie.maxAge > 0`, the `ttl` for store data will be always the same as `maxAge`.
 
+
+## Dynamic session expiration (cookie options)
+
 When setting `cookie` option to a plain object, all sessions will use the same cookie options. If a function is assigned to `cookie`, cookie options will be dynamically calculated at each (non-empty) session's saving stage.
 For example, you can use an arrow function to set different `maxAge` for user and guest sessions, as below:
 ```javascript
