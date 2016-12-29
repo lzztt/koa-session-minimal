@@ -27,7 +27,7 @@ class AsyncStore {
   }
 
   async get(sid) {
-    return await this.store.get(sid)
+    return this.store.get(sid)
   }
 
   async set(sid, val, ttl) {
