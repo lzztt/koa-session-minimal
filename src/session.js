@@ -9,7 +9,6 @@ const cookieOpt = (cookie) => {
   const options = Object.assign({
     maxAge: 0, // default to use session cookie
     path: '/',
-    secure: false,
     httpOnly: true,
   }, cookie || {}, {
     overwrite: true, // overwrite previous session cookie changes
@@ -39,7 +38,7 @@ module.exports = (options) => {
   const store = new Store(opt.store || new MemoryStore())
   const cookie = opt.cookie instanceof Function ? opt.cookie : cookieOpt(opt.cookie)
 
-  return async (ctx, next) => { // eslint-disable-line arrow-parens
+  return async (ctx, next) => {
     // initialize session id and data
     const cookieSid = ctx.cookies.get(key)
 
