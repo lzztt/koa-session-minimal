@@ -32,6 +32,10 @@ const saveSession = (ctx, key, cookie, store, sid) => {
   store.set(`${key}:${sid}`, ctx.session, ttl)
 }
 
+const cleanSession = (ctx) => {
+  if (!ctx.session || typeof ctx.session !== 'object') ctx.session = {}
+}
+
 module.exports = (options) => {
   const opt = options || {}
   const key = opt.key || 'koa:sess'
@@ -48,9 +52,7 @@ module.exports = (options) => {
       ctx.session = {}
     } else {
       ctx.session = await store.get(`${key}:${sid}`)
-      if (!ctx.session || typeof ctx.session !== 'object') {
-        ctx.session = {}
-      }
+      cleanSession(ctx)
     }
 
     const sessionClone = JSON.parse(JSON.stringify(ctx.session))
@@ -64,7 +66,8 @@ module.exports = (options) => {
 
     await next()
 
-    const sessionHasData = ctx.session && Object.keys(ctx.session).length > 0
+    cleanSession(ctx)
+    const sessionHasData = Object.keys(ctx.session).length > 0
 
     if (sid !== cookieSid) { // a new session id
       // delete old session
