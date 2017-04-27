@@ -42,11 +42,11 @@
     "eslint-config-airbnb-base": "^11.0.0",
     "eslint-plugin-import": "^2.2.0",
     "istanbul": "^0.4.5",
-    "koa": "^2.0.0-alpha.7",
+    "koa": "^2.0.0",
     "koa-generic-session-mongo": "^0.3.0",
-    "koa-redis": "^2.1.2",
+    "koa-redis": "^3.0.0",
     "mocha": "^3.0.2",
-    "supertest": "^2.0.0"
+    "supertest": "^3.0.0"
   },
   "engines": {
     "node": ">= 4"
