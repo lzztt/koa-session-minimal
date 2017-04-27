@@ -5,12 +5,13 @@ const MemoryStore = require('./memory_store')
 
 const ONE_DAY = 24 * 3600 * 1000 // one day in milliseconds
 
-const cookieOpt = (cookie) => {
+const cookieOpt = (cookie, ctx) => {
+  const obj = cookie instanceof Function ? cookie(ctx) : cookie
   const options = Object.assign({
     maxAge: 0, // default to use session cookie
     path: '/',
     httpOnly: true,
-  }, cookie || {}, {
+  }, obj || {}, {
     overwrite: true, // overwrite previous session cookie changes
     signed: false, // disable signed option
   })
@@ -19,16 +20,15 @@ const cookieOpt = (cookie) => {
 }
 
 const deleteSession = (ctx, key, cookie, store, sid) => {
-  const options = cookie instanceof Function ? cookieOpt(cookie(ctx)) : Object.assign({}, cookie)
-  delete options.maxAge
-  ctx.cookies.set(key, null, options)
+  const tmpCookie = Object.assign({}, cookie)
+  delete tmpCookie.maxAge
+  ctx.cookies.set(key, null, tmpCookie)
   store.destroy(`${key}:${sid}`)
 }
 
 const saveSession = (ctx, key, cookie, store, sid) => {
-  const options = cookie instanceof Function ? cookieOpt(cookie(ctx)) : cookie
-  const ttl = options.maxAge > 0 ? options.maxAge : ONE_DAY
-  ctx.cookies.set(key, sid, options)
+  const ttl = cookie.maxAge > 0 ? cookie.maxAge : ONE_DAY
+  ctx.cookies.set(key, sid, cookie)
   store.set(`${key}:${sid}`, ctx.session, ttl)
 }
 
@@ -40,48 +40,48 @@ module.exports = (options) => {
   const opt = options || {}
   const key = opt.key || 'koa:sess'
   const store = new Store(opt.store || new MemoryStore())
-  const cookie = opt.cookie instanceof Function ? opt.cookie : cookieOpt(opt.cookie)
+  const getCookie = ctx => cookieOpt(opt.cookie, ctx)
 
   return async (ctx, next) => {
     // initialize session id and data
-    const cookieSid = ctx.cookies.get(key)
+    const oldSid = ctx.cookies.get(key)
 
-    let sid = cookieSid
-    if (!sid) {
+    let sid = oldSid
+
+    const regenerateId = () => {
       sid = uid.sync(24)
+    }
+
+    if (!sid) {
+      regenerateId()
       ctx.session = {}
     } else {
       ctx.session = await store.get(`${key}:${sid}`)
       cleanSession(ctx)
     }
 
-    const sessionClone = JSON.parse(JSON.stringify(ctx.session))
+    const oldData = JSON.parse(JSON.stringify(ctx.session))
 
     // expose session handler to ctx
     ctx.sessionHandler = {
-      regenerateId: () => {
-        sid = uid.sync(24)
-      },
+      regenerateId,
     }
 
     await next()
 
     cleanSession(ctx)
-    const sessionHasData = Object.keys(ctx.session).length > 0
+    const hasData = Object.keys(ctx.session).length > 0
 
-    if (sid !== cookieSid) { // a new session id
-      // delete old session
-      if (cookieSid) deleteSession(ctx, key, cookie, store, cookieSid)
+    if (sid === oldSid) { // session id not changed
+      if (deepEqual(ctx.session, oldData)) return // session data not changed
 
-      // save new session
-      if (sessionHasData) saveSession(ctx, key, cookie, store, sid)
-    } else { // an existing session
-      // session data has not been changed
-      if (deepEqual(ctx.session, sessionClone)) return
-
-      // update / delete session
-      const doSession = sessionHasData ? saveSession : deleteSession
-      doSession(ctx, key, cookie, store, sid)
+      const cookie = getCookie(ctx)
+      const action = hasData ? saveSession : deleteSession
+      action(ctx, key, cookie, store, sid) // update or delete the existing session
+    } else { // session id changed
+      const cookie = getCookie(ctx)
+      if (oldSid) deleteSession(ctx, key, cookie, store, oldSid) // delete old session
+      if (hasData) saveSession(ctx, key, cookie, store, sid) // save new session
     }
   }
 }
