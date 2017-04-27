@@ -1,6 +1,6 @@
 {
   "name": "koa-session-minimal",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Minimal implementation of session middleware for Koa 2. Inspired by and compatible with koa-generic-session",
   "main": "dist/session.js",
   "scripts": {
