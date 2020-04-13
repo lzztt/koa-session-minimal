@@ -5,6 +5,3 @@
 .babelrc
 Makefile
 /test
-/dist/test
-/build
-/coverage
