@@ -10,6 +10,8 @@ Native Koa 2 session middleware, inspired by and compatible with [koa-generic-se
 
 This rewrite implements `koa-generic-session`'s essential interfaces, with around 100 lines of code in ES6. It supports existing session stores for `koa-generic-session`.
 
+Verion 4+ requires node 8+. Please use v3.0.4 for node versions older than 8.
+
 
 ## Minimum features and storage usage
 
