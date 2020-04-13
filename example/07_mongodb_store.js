@@ -1,6 +1,6 @@
 const Koa = require('koa')
-const session = require('..')
 const MongoStore = require('koa-generic-session-mongo')
+const session = require('..')
 
 const app = new Koa()
 

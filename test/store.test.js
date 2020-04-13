@@ -1,6 +1,7 @@
+/* eslint max-classes-per-file: ["error", 2] */
+const { expect } = require('chai')
 const MemoryStore = require('../src/memory_store')
 const Store = require('../src/store')
-const expect = require('chai').expect
 
 
 class GeneratorStore {
