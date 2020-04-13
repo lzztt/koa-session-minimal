@@ -1,6 +1,0 @@
-{
-  "plugins": [
-    "transform-strict-mode",
-    "transform-async-to-generator"
-  ]
-}

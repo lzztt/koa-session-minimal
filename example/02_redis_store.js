@@ -1,6 +1,6 @@
 const Koa = require('koa')
-const session = require('..')
 const RedisStore = require('koa-redis')
+const session = require('..')
 
 const app = new Koa()
 

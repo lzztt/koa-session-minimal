@@ -7,20 +7,20 @@ const ONE_DAY = 24 * 3600 * 1000 // one day in milliseconds
 
 const cookieOpt = (cookie, ctx) => {
   const obj = cookie instanceof Function ? cookie(ctx) : cookie
-  const options = Object.assign({
+  const options = {
     maxAge: 0, // default to use session cookie
     path: '/',
     httpOnly: true,
-  }, obj || {}, {
+    ...obj,
     overwrite: true, // overwrite previous session cookie changes
     signed: false, // disable signed option
-  })
+  }
   if (!(options.maxAge >= 0)) options.maxAge = 0
   return options
 }
 
 const deleteSession = (ctx, key, cookie, store, sid) => {
-  const tmpCookie = Object.assign({}, cookie)
+  const tmpCookie = { ...cookie }
   delete tmpCookie.maxAge
   ctx.cookies.set(key, null, tmpCookie)
   store.destroy(`${key}:${sid}`)
@@ -40,7 +40,7 @@ module.exports = (options) => {
   const opt = options || {}
   const key = opt.key || 'koa:sess'
   const store = new Store(opt.store || new MemoryStore())
-  const getCookie = ctx => cookieOpt(opt.cookie, ctx)
+  const getCookie = (ctx) => cookieOpt(opt.cookie, ctx)
 
   return async (ctx, next) => {
     // initialize session id and data

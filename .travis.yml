@@ -1,24 +1,20 @@
 sudo: false
 language: node_js
 node_js:
-  - "4"
-  - "5"
-  - "6"
-  - "7"
+  - "8"
+  - "10"
+  - "12"
+  - "14"
 env:
-  - CXX=g++-4.8
+  - CXX=g++
 addons:
   apt:
-    sources:
-      - ubuntu-toolchain-r-test
     packages:
-      - g++-4.8
+      - g++
 services:
   - redis-server
 script:
   - npm run lint
-  - npm run test
-  - npm run test-travis
-  - npm run dist
+  - npm run test-cov
 after_success:
   - bash <(curl -s https://codecov.io/bash)
