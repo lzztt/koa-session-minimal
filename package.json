@@ -2,7 +2,7 @@
   "name": "koa-session-minimal",
   "version": "4.0.0",
   "description": "Minimal implementation of session middleware for Koa 2. Inspired by and compatible with koa-generic-session",
-  "main": "dist/session.js",
+  "main": "src/session.js",
   "scripts": {
     "lint": "eslint src test example",
     "test": "mocha --timeout 3000 --bail --exit test",
