@@ -5,8 +5,8 @@
   "main": "src/session.js",
   "scripts": {
     "lint": "eslint src test example",
-    "test": "mocha --timeout 3000 --bail --exit test",
-    "test-cov": "nyc mocha --timeout 3000 --bail --exit test"
+    "test": "nyc mocha --timeout 3000 --bail --exit test",
+    "report": "nyc report --reporter=cobertura"
   },
   "repository": {
     "type": "git",
