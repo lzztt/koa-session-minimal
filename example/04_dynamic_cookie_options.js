@@ -1,6 +1,6 @@
 const Koa = require('koa')
-const session = require('..')
 const RedisStore = require('koa-redis')
+const session = require('..')
 
 const app = new Koa()
 
@@ -8,7 +8,7 @@ const ONE_MONTH = 30 * 24 * 3600 * 1000
 
 app.use(session({
   store: new RedisStore(),
-  cookie: ctx => ({
+  cookie: (ctx) => ({
     maxAge: ctx.session.user ? ONE_MONTH : 0,
     httpOnly: false,
   }),

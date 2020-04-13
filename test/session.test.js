@@ -1,7 +1,7 @@
 /* eslint "prefer-rest-params": "off", "consistent-return": "off" */
 const Koa = require('koa')
 const request = require('supertest')
-const expect = require('chai').expect
+const { expect } = require('chai')
 const session = require('../src/session')
 const MemoryStore = require('../src/memory_store')
 
@@ -402,7 +402,7 @@ describe('cookie options', () => {
   })
 
   const clientDynamic = getClient({
-    cookie: ctx => ({
+    cookie: (ctx) => ({
       maxAge: ctx.maxAge,
     }),
   })

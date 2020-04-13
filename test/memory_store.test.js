@@ -1,5 +1,5 @@
+const { expect } = require('chai')
 const MemoryStore = require('../src/memory_store')
-const expect = require('chai').expect
 
 describe('default memory store', () => {
   let sid

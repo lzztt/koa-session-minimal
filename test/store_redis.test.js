@@ -1,6 +1,6 @@
 const RedisStore = require('koa-redis')
+const { expect } = require('chai')
 const Store = require('../src/store')
-const expect = require('chai').expect
 
 
 const test = (name, sessionStore) => {
