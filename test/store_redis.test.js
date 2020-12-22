@@ -2,7 +2,6 @@ const RedisStore = require('koa-redis')
 const { expect } = require('chai')
 const Store = require('../src/store')
 
-
 const test = (name, sessionStore) => {
   describe(`store adapter wraps ${name}`, () => {
     let store

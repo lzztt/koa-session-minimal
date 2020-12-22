@@ -3,7 +3,6 @@ const { expect } = require('chai')
 const MemoryStore = require('../src/memory_store')
 const Store = require('../src/store')
 
-
 class GeneratorStore {
   constructor() {
     this.store = new MemoryStore()
@@ -39,7 +38,6 @@ class AsyncStore {
     await this.store.destroy(sid)
   }
 }
-
 
 const test = (name, sessionStore) => {
   describe(`store adapter wraps ${name}`, () => {
