@@ -1,6 +1,6 @@
 {
   "name": "koa-session-minimal",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Minimal implementation of session middleware for Koa 2. Inspired by and compatible with koa-generic-session",
   "main": "src/session.js",
   "scripts": {
@@ -28,18 +28,18 @@
     "uid-safe": "^2.1.2"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
-    "eslint": "^6.6.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1",
-    "koa": "^2.13.0",
+    "chai": "^4.3.6",
+    "eslint": "^8.10.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.4",
+    "koa": "^2.13.4",
     "koa-redis": "^4.0.1",
-    "mocha": "^7.2.0",
+    "mocha": "^9.2.1",
     "nyc": "^15.1.0",
-    "supertest": "^4.0.2"
+    "supertest": "^6.2.2"
   },
   "engines": {
-    "node": ">= 8"
+    "node": ">= 14"
   },
   "files": [
     "src"
