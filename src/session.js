@@ -1,5 +1,5 @@
 const uid = require('uid-safe')
-const deepEqual = require('deep-equal')
+const deepEqual = require('fast-deep-equal')
 const Store = require('./store')
 const MemoryStore = require('./memory_store')
 

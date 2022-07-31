@@ -1,6 +1,6 @@
 {
   "name": "koa-session-minimal",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "Minimal implementation of session middleware for Koa 2. Inspired by and compatible with koa-generic-session",
   "main": "src/session.js",
   "scripts": {
@@ -24,7 +24,7 @@
   "homepage": "https://github.com/longztian/koa-session-minimal#readme",
   "dependencies": {
     "co": "^4.6.0",
-    "deep-equal": "^2.0.5",
+    "fast-deep-equal": "^3.1.3",
     "uid-safe": "^2.1.2"
   },
   "devDependencies": {
